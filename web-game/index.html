@@ -330,32 +330,20 @@ class Game {
 
     // 1. 剧情数据
     text.textContent = '加载剧情数据...';
-    fill.style.width = '15%';
+    fill.style.width = '30%';
     await this.loadStory();
 
-    // 2. 背景图
-    text.textContent = '加载背景图片...';
-    fill.style.width = '40%';
-    await this.loadBackgrounds();
-
-    // 3. 角色头像
-    text.textContent = '加载角色头像...';
-    fill.style.width = '60%';
-    await this.loadCharacters();
-
-    // 4. 存档
+    // 2. 存档
     text.textContent = '加载存档数据...';
-    fill.style.width = '75%';
+    fill.style.width = '60%';
     this.loadStorage();
 
-    // 5. 音频
-    text.textContent = '加载音乐资源...';
-    fill.style.width = '90%';
-    this.loadAudio();
-
-    // 完成
-    fill.style.width = '100%';
+    // 3. 后台异步加载图片和音频（不阻塞启动）
     text.textContent = '准备开始...';
+    fill.style.width = '100%';
+    this.loadBackgrounds();
+    this.loadCharacters();
+    this.loadAudio();
 
     setTimeout(() => {
       document.getElementById('loading').classList.add('hidden');
@@ -386,7 +374,7 @@ class Game {
         const img = new Image();
         img.onload = () => { this.backgrounds[name] = img; resolve(); };
         img.onerror = () => resolve();
-        img.src = `assets/backgrounds/${name}.png`;
+        img.src = `assets/backgrounds/${name}.jpg`;
       });
     });
     await Promise.all(promises);
