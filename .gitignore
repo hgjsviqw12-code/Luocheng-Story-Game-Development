@@ -14,4 +14,7 @@ Thumbs.db
 # 大文件
 dist/
 *.exe
-*.mp3
+# 排除桌面版音频（在assets/audio/根目录），但保留网页版音频
+assets/audio/*.mp3
+# 网页版音频文件允许上传（每个<8MB，共约23MB）
+!web-game/assets/audio/*.mp3
