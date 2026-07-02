@@ -25,16 +25,41 @@
         .loading p {
             color: #b4b4c8;
         }
+        .version-link {
+            margin-top: 30px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+        .version-link a {
+            color: rgb(233, 69, 96);
+            text-decoration: none;
+            font-size: 14px;
+            border: 1px solid rgb(100, 100, 130);
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
+        .version-link a:hover {
+            background: rgb(45, 45, 68);
+        }
     </style>
     <script>
-        // 自动跳转到网页版游戏
-        window.location.href = 'web-game/index.html';
+        // 检测设备类型自动跳转
+        (function() {
+            var isMobile = /Android|iPhone|iPad|iPod|Windows Phone|Mobile|BlackBerry|Opera Mini|IEMobile/i.test(navigator.userAgent);
+            var target = isMobile ? 'web-game-mobile/index.html' : 'web-game/index.html';
+            window.location.href = target;
+        })();
     </script>
 </head>
 <body>
     <div class="loading">
         <h1>罗诚的故事</h1>
         <p>正在加载游戏...</p>
+        <div class="version-link">
+            <a href="web-game/index.html">电脑版</a>
+            <a href="web-game-mobile/index.html">手机版</a>
+        </div>
     </div>
 </body>
 </html>
