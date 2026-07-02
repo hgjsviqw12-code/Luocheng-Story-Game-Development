@@ -69,50 +69,38 @@ html, body {
   margin-top: 12px;
   font-family: "Microsoft YaHei", sans-serif;
 }
-/* 竖屏旋转提示 */
-#rotate-hint {
+/* 虚拟返回按钮 */
+#back-btn {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgb(15, 15, 25);
-  z-index: 2000;
-  display: none;
-  flex-direction: column;
+  top: 15px;
+  left: 15px;
+  width: 44px;
+  height: 44px;
+  background: rgba(45, 45, 68, 0.85);
+  border: 1px solid rgb(100, 100, 130);
+  border-radius: 50%;
+  display: flex;
   justify-content: center;
   align-items: center;
-  color: rgb(233, 69, 96);
-  font-family: "Microsoft YaHei", sans-serif;
-  text-align: center;
-  padding: 30px;
+  z-index: 1000;
+  color: rgb(240, 240, 250);
+  font-size: 22px;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
 }
-#rotate-hint.show { display: flex; }
-#rotate-hint .rotate-icon {
-  font-size: 60px;
-  margin-bottom: 20px;
-  animation: rotate 2s infinite ease-in-out;
+#back-btn:active {
+  background: rgba(100, 100, 130, 0.85);
 }
-@keyframes rotate {
-  0%, 100% { transform: rotate(0deg); }
-  50% { transform: rotate(90deg); }
-}
-#rotate-hint h2 { font-size: 5vw; color: rgb(240,240,250); margin-bottom: 10px; }
-#rotate-hint p { font-size: 3.5vw; color: rgb(180,180,200); }
-@media (orientation: portrait) {
-  #rotate-hint.show { display: flex; }
-  #game-container { display: none; }
-}
+#back-btn.hidden { display: none; }
 </style>
 </head>
 <body>
-<div id="rotate-hint">
-  <div class="rotate-icon">📱</div>
-  <h2>请旋转手机至横屏</h2>
-  <p>游戏在横屏模式下体验最佳</p>
-</div>
 <div id="loading">
   <h1>罗诚的故事</h1>
   <div class="loading-bar"><div class="loading-fill" id="loading-fill"></div></div>
   <div class="loading-text" id="loading-text">正在加载...</div>
 </div>
+<div id="back-btn">←</div>
 <div id="game-container">
   <canvas id="game-canvas" width="1280" height="720"></canvas>
 </div>
@@ -308,6 +296,7 @@ class Game {
 
     // 状态
     this.state = STATE.DISCLAIMER;
+    this.lastState = STATE.DISCLAIMER;
     this.currentSceneId = 'disclaimer';
     this.currentLineIndex = 0;
 
@@ -777,6 +766,12 @@ class Game {
   }
 
   update() {
+    // 更新返回按钮可见性
+    if (this.lastState !== this.state) {
+      this.lastState = this.state;
+      this.updateBackButton();
+    }
+
     // 文字动画
     if (this.state === STATE.DIALOG && !this.textComplete && this.textTarget) {
       this.textTimer += 1000 / FPS;
@@ -1940,18 +1935,17 @@ class Game {
     document.addEventListener('keydown', firstInteraction);
     document.addEventListener('touchstart', firstInteraction, { passive: false });
 
-    // 竖屏旋转提示
-    const updateOrientation = () => {
-      const hint = document.getElementById('rotate-hint');
-      if (window.innerHeight > window.innerWidth) {
-        hint.classList.add('show');
-      } else {
-        hint.classList.remove('show');
-      }
-    };
-    window.addEventListener('resize', updateOrientation);
-    window.addEventListener('orientationchange', updateOrientation);
-    updateOrientation();
+    // 返回按钮点击
+    const backBtn = document.getElementById('back-btn');
+    backBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.handleBack();
+    });
+    backBtn.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      this.handleBack();
+    });
 
     // 阻止双指缩放
     document.addEventListener('gesturestart', (e) => e.preventDefault());
@@ -2351,6 +2345,54 @@ class Game {
       case STATE.SAVE:
         if (key === 'Escape') this.state = STATE.TITLE;
         break;
+    }
+  }
+
+  handleBack() {
+    if (this.showResetConfirm) {
+      this.showResetConfirm = false;
+      return;
+    }
+
+    switch (this.state) {
+      case STATE.DISCLAIMER:
+        this.state = STATE.TITLE;
+        this.playMusic('menu');
+        break;
+      case STATE.TITLE:
+        break;
+      case STATE.SETTINGS:
+        this.saveVolume();
+        this.state = STATE.TITLE;
+        break;
+      case STATE.DIALOG:
+        this.state = STATE.TITLE;
+        this.playMusic('menu');
+        break;
+      case STATE.CHOICE:
+        this.state = STATE.TITLE;
+        this.playMusic('menu');
+        break;
+      case STATE.ENDING:
+        this.state = STATE.TITLE;
+        this.playMusic('menu');
+        break;
+      case STATE.GALLERY:
+        this.state = STATE.TITLE;
+        break;
+      case STATE.SAVE:
+        this.state = STATE.TITLE;
+        break;
+    }
+  }
+
+  updateBackButton() {
+    const btn = document.getElementById('back-btn');
+    if (!btn) return;
+    if (this.state === STATE.TITLE || this.state === STATE.DISCLAIMER) {
+      btn.classList.add('hidden');
+    } else {
+      btn.classList.remove('hidden');
     }
   }
 
