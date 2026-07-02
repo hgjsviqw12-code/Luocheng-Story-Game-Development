@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老罗的故事 - UI原型预览</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: #0a0a0f;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        /* 游戏窗口容器 */
+        .game-window {
+            width: 960px;
+            height: 600px;
+            background: #1a1a2e;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 1px rgba(233,69,96,0.5);
+            position: relative;
+        }
+
+        /* 顶部状态栏 */
+        .status-bar {
+            height: 40px;
+            background: linear-gradient(180deg, #2d2d44 0%, #1a1a2e 100%);
+            border-bottom: 1px solid #3d3d5c;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 30px;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #a0a0a0;
+            font-size: 0.85em;
+        }
+        .status-item .icon {
+            width: 16px;
+            height: 16px;
+        }
+        .status-item.money { color: #f56565; }
+        .status-item.rep { color: #f6e05e; }
+        .status-item .value { font-weight: bold; }
+        .status-item.money .value { color: #f56565; }
+        .status-item.rep .value { color: #f6e05e; }
+        .status-title {
+            margin-left: auto;
+            color: #e94560;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        /* 背景图区域 */
+        .scene-area {
+            height: 340px;
+            position: relative;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f0f1a 100%);
+            overflow: hidden;
+        }
+        .scene-bg {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.7;
+        }
+        /* 场景上的装饰元素 */
+        .scene-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at center bottom, transparent 0%, rgba(10,10,15,0.8) 100%);
+        }
+        /* 窗户灯光效果 */
+        .window-light {
+            position: absolute;
+            top: 20px;
+            right: 100px;
+            width: 80px;
+            height: 120px;
+            background: linear-gradient(180deg, rgba(255,220,150,0.3) 0%, rgba(255,180,100,0.1) 100%);
+            border: 2px solid rgba(255,220,150,0.2);
+            border-radius: 4px;
+        }
+        /* 桌上的文件 */
+        .desk-items {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+        }
+        .paper {
+            width: 60px;
+            height: 80px;
+            background: #fff;
+            border-radius: 2px;
+            transform: rotate(-5deg);
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+        }
+        .paper:nth-child(2) { transform: rotate(3deg); }
+        .paper:nth-child(3) { transform: rotate(-2deg); }
+
+        /* 角色立绘 */
+        .character {
+            position: absolute;
+            bottom: 60px;
+            left: 80px;
+            width: 180px;
+            height: 280px;
+        }
+        .character-img {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #3d3d5c 0%, #2d2d44 100%);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #4a4a6a;
+        }
+        .character-head {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #f5deb3 0%, #deb887 100%);
+            border-radius: 50%;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .character-hair {
+            position: absolute;
+            top: -5px;
+            left: 5px;
+            right: 5px;
+            height: 35px;
+            background: #2c2c2c;
+            border-radius: 50% 50% 0 0;
+        }
+        .character-eyes {
+            position: absolute;
+            top: 30px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .eye {
+            width: 12px;
+            height: 12px;
+            background: #2c2c2c;
+            border-radius: 50%;
+        }
+        .character-body {
+            width: 120px;
+            height: 150px;
+            background: #1a1a2e;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a0a0a0;
+            font-size: 0.8em;
+        }
+        .character-name {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(233,69,96,0.9);
+            color: #fff;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        /* 对话框 */
+        .dialogue-box {
+            position: absolute;
+            bottom: 60px;
+            left: 40px;
+            right: 40px;
+            height: 140px;
+            background: linear-gradient(180deg, rgba(30,30,50,0.95) 0%, rgba(20,20,35,0.98) 100%);
+            border: 2px solid #3d3d5c;
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 -5px 30px rgba(0,0,0,0.3);
+        }
+        .dialogue-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20px;
+            right: 20px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #e94560, transparent);
+        }
+        .speaker-name {
+            color: #e94560;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .dialogue-text {
+            color: #e0e0e0;
+            font-size: 1em;
+            line-height: 1.6;
+            letter-spacing: 1px;
+        }
+        .dialogue-text .highlight {
+            color: #f6e05e;
+            font-weight: bold;
+        }
+        .click-hint {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            color: #666;
+            font-size: 0.75em;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* 选择项面板 */
+        .choice-panel {
+            position: absolute;
+            bottom: 60px;
+            left: 40px;
+            right: 40px;
+            background: linear-gradient(180deg, rgba(30,30,50,0.98) 0%, rgba(20,20,35,0.99) 100%);
+            border: 2px solid #e94560;
+            border-radius: 12px;
+            padding: 20px;
+            display: none;
+        }
+        .choice-panel.active { display: block; }
+        .choice-title {
+            color: #e94560;
+            font-size: 1em;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #3d3d5c;
+        }
+        .choice-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: rgba(60,60,90,0.3);
+            border: 1px solid #3d3d5c;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .choice-item:hover {
+            background: rgba(233,69,96,0.2);
+            border-color: #e94560;
+            transform: translateX(5px);
+        }
+        .choice-item.hidden-choice {
+            opacity: 0.4;
+            border-style: dashed;
+        }
+        .choice-item.hidden-choice:hover {
+            opacity: 0.7;
+        }
+        .choice-key {
+            width: 28px;
+            height: 28px;
+            background: #e94560;
+            color: #fff;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-right: 12px;
+        }
+        .choice-item.hidden-choice .choice-key {
+            background: #9f7aea;
+        }
+        .choice-content { flex: 1; }
+        .choice-text {
+            color: #e0e0e0;
+            font-size: 0.95em;
+            margin-bottom: 3px;
+        }
+        .choice-desc {
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        /* 底部工具栏 */
+        .tool-bar {
+            height: 50px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #15152a 100%);
+            border-top: 1px solid #3d3d5c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            padding: 0 20px;
+        }
+        .tool-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        .tool-btn:hover { opacity: 1; }
+        .tool-icon {
+            width: 24px;
+            height: 24px;
+            background: #3d3d5c;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a0a0a0;
+            font-size: 0.7em;
+        }
+        .tool-label {
+            color: #888;
+            font-size: 0.7em;
+        }
+
+        /* 说明区域 */
+        .description {
+            max-width: 960px;
+            margin-top: 40px;
+            padding: 25px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .description h2 {
+            color: #e94560;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+        .description p {
+            color: #a0a0a0;
+            font-size: 0.9em;
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+        .description ul {
+            color: #a0a0a0;
+            font-size: 0.9em;
+            line-height: 2;
+            padding-left: 20px;
+        }
+        .description li { margin-bottom: 5px; }
+        .description .highlight-text {
+            color: #f6e05e;
+        }
+    </style>
+</head>
+<body>
+    <h1>《老罗的故事》UI原型预览</h1>
+    <p class="subtitle">多分支剧情选择类文字冒险游戏</p>
+
+    <!-- 游戏窗口 -->
+    <div class="game-window">
+        <!-- 顶部状态栏 -->
+        <div class="status-bar">
+            <div class="status-item money">
+                <span class="icon">💰</span>
+                <span>资金:</span>
+                <span class="value">负债6亿</span>
+            </div>
+            <div class="status-item rep">
+                <span class="icon">⭐</span>
+                <span>口碑:</span>
+                <span class="value">★★☆☆☆</span>
+            </div>
+            <div class="status-title">【第一幕：至暗时刻】</div>
+        </div>
+
+        <!-- 场景区域 -->
+        <div class="scene-area">
+            <!-- 背景渐变模拟办公室夜景 -->
+            <div class="scene-bg" style="background: linear-gradient(180deg, #0d1b2a 0%, #1b263b 40%, #2d2d44 100%);"></div>
+            <div class="scene-overlay"></div>
+
+            <!-- 窗户灯光 -->
+            <div class="window-light"></div>
+
+            <!-- 桌上文件（模拟债务账单） -->
+            <div class="desk-items">
+                <div class="paper" style="background: #ffcccc;"></div>
+                <div class="paper" style="background: #fff;"></div>
+                <div class="paper" style="background: #ffe6cc;"></div>
+            </div>
+
+            <!-- 角色立绘 -->
+            <div class="character">
+                <div class="character-img">
+                    <div class="character-head">
+                        <div class="character-hair"></div>
+                        <div class="character-eyes">
+                            <div class="eye"></div>
+                            <div class="eye"></div>
+                        </div>
+                    </div>
+                    <div class="character-body">老罗立绘区</div>
+                </div>
+                <div class="character-name">老罗</div>
+            </div>
+
+            <!-- 对话框 -->
+            <div class="dialogue-box" id="dialogue-box">
+                <div class="speaker-name">老罗</div>
+                <div class="dialogue-text">
+                    银行又打电话来了...说我的贷款已经<span class="highlight">逾期</span>了。
+                    <br><br>
+                    锤子科技的资金链...真的撑不住了。窗外是北京的夜色，我坐在办公室里，桌上堆满了<span class="highlight">债务账单</span>和供应商的催款函...
+                </div>
+                <div class="click-hint">点击继续 ▼</div>
+            </div>
+
+            <!-- 选择项面板（点击后切换显示） -->
+            <div class="choice-panel active" id="choice-panel">
+                <div class="choice-title">【关键抉择】你站在人生的十字路口，你会怎么做？</div>
+
+                <div class="choice-item">
+                    <div class="choice-key">A</div>
+                    <div class="choice-content">
+                        <div class="choice-text">继续死磕手机行业</div>
+                        <div class="choice-desc">风险高，但如果成功回报巨大</div>
+                    </div>
+                </div>
+
+                <div class="choice-item">
+                    <div class="choice-key">B</div>
+                    <div class="choice-content">
+                        <div class="choice-text">转型直播带货</div>
+                        <div class="choice-desc">全新赛道，但你并不懂这个行业...</div>
+                    </div>
+                </div>
+
+                <div class="choice-item">
+                    <div class="choice-key">C</div>
+                    <div class="choice-content">
+                        <div class="choice-text">加入小米（雷军邀请）</div>
+                        <div class="choice-desc">稳定，但会失去主导权</div>
+                    </div>
+                </div>
+
+                <div class="choice-item hidden-choice">
+                    <div class="choice-key">?</div>
+                    <div class="choice-content">
+                        <div class="choice-text">加入苹果（库克邀请）</div>
+                        <div class="choice-desc">（隐藏选项）⭐ 特殊条件解锁</div>
+                    </div>
+                </div>
+
+                <div class="choice-item">
+                    <div class="choice-key">E</div>
+                    <div class="choice-content">
+                        <div class="choice-text">卖掉公司，彻底退出</div>
+                        <div class="choice-desc">激流勇退，回归平凡人生</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部工具栏 -->
+        <div class="tool-bar">
+            <div class="tool-btn">
+                <div class="tool-icon">💾</div>
+                <div class="tool-label">存档</div>
+            </div>
+            <div class="tool-btn">
+                <div class="tool-icon">📂</div>
+                <div class="tool-label">读档</div>
+            </div>
+            <div class="tool-btn">
+                <div class="tool-icon">⚙</div>
+                <div class="tool-label">设置</div>
+            </div>
+            <div class="tool-btn">
+                <div class="tool-icon">📖</div>
+                <div class="tool-label">图鉴</div>
+            </div>
+            <div class="tool-btn">
+                <div class="tool-icon">✕</div>
+                <div class="tool-label">退出</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 说明 -->
+    <div class="description">
+        <h2>📐 界面布局说明</h2>
+        <p>以上是一个静态UI原型展示，展示了游戏的核心界面布局。</p>
+        <ul>
+            <li><span class="highlight-text">顶部状态栏</span> - 显示资金（负债6亿）、口碑（★★☆☆☆）、当前幕数</li>
+            <li><span class="highlight-text">场景区域</span> - 背景图+角色立绘+桌上文件（模拟债务账单）</li>
+            <li><span class="highlight-text">对话框</span> - 显示角色对话，支持文字高亮和逐字动画</li>
+            <li><span class="highlight-text">选择面板</span> - 5个选项（A/B/C/隐藏D/E），鼠标悬停有高亮动效</li>
+            <li><span class="highlight-text">底部工具栏</span> - 存档/读档/设置/图鉴/退出</li>
+        </ul>
+        <p style="margin-top: 15px; color: #666; font-size: 0.85em;">
+            💡 提示：这是静态原型展示，实际游戏运行时会有更多动画效果（文字逐字显示、角色表情变化、选项出现动画等）
+        </p>
+    </div>
+</body>
+</html>

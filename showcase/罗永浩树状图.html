@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>罗永浩人生树状图 - 逆袭人生</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            color: #fff;
+            padding: 30px 0;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .header h1 span {
+            color: #e94560;
+        }
+        .header p {
+            color: #a0a0a0;
+            font-size: 1.1em;
+        }
+        .tree-container {
+            overflow-x: auto;
+            padding: 40px 20px;
+            min-width: 1400px;
+        }
+        .tree {
+            display: flex;
+            justify-content: center;
+        }
+        .level {
+            display: flex;
+            justify-content: center;
+            position: relative;
+            padding: 0 20px;
+        }
+        .level::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 30px;
+            background: #4a5568;
+        }
+        .level:first-child::before {
+            display: none;
+        }
+        .node {
+            position: relative;
+            margin: 0 15px;
+            text-align: center;
+        }
+        .node-box {
+            background: linear-gradient(145deg, #2d3748, #1a202c);
+            border: 2px solid #4a5568;
+            border-radius: 12px;
+            padding: 15px 20px;
+            min-width: 180px;
+            max-width: 220px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .node-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .node-box:hover {
+            transform: translateY(-5px);
+            border-color: #e94560;
+            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3);
+        }
+        .node-box:hover::before {
+            opacity: 1;
+        }
+        .node-box.start {
+            background: linear-gradient(145deg, #e94560, #c53030);
+            border-color: #e94560;
+        }
+        .node-box.good {
+            border-color: #48bb78;
+        }
+        .node-box.good:hover {
+            box-shadow: 0 10px 30px rgba(72, 187, 120, 0.3);
+        }
+        .node-box.bad {
+            border-color: #f56565;
+        }
+        .node-box.hidden {
+            border-color: #9f7aea;
+            background: linear-gradient(145deg, #553c9a, #44337a);
+        }
+        .node-box .title {
+            color: #fff;
+            font-size: 0.95em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .node-box .desc {
+            color: #a0a0a0;
+            font-size: 0.8em;
+        }
+        .node-box.start .title {
+            font-size: 1.1em;
+        }
+        .node-box.start .desc {
+            color: #ffd0d0;
+        }
+        .branch-line {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            width: 2px;
+            height: 30px;
+            background: #4a5568;
+        }
+        .children {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+            position: relative;
+        }
+        .children::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 100px);
+            height: 2px;
+            background: #4a5568;
+        }
+        .children .node::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 40px;
+            background: #4a5568;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #a0a0a0;
+            font-size: 0.9em;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid;
+        }
+        .legend-color.normal { border-color: #4a5568; background: #2d3748; }
+        .legend-color.good { border-color: #48bb78; background: #48bb78; }
+        .legend-color.bad { border-color: #f56565; background: #f56565; }
+        .legend-color.hidden { border-color: #9f7aea; background: #9f7aea; }
+        .legend-color.start { border-color: #e94560; background: #e94560; }
+
+        /* 结局卡片样式 */
+        .endings-section {
+            margin-top: 60px;
+            padding: 40px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+        }
+        .endings-section h2 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.8em;
+        }
+        .endings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .ending-card {
+            background: linear-gradient(145deg, #2d3748, #1a202c);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #4a5568;
+            transition: transform 0.3s;
+        }
+        .ending-card:hover {
+            transform: translateY(-3px);
+        }
+        .ending-card h3 {
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        .ending-card .code {
+            color: #e94560;
+            font-size: 0.85em;
+            margin-bottom: 8px;
+        }
+        .ending-card .type {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            margin-bottom: 10px;
+        }
+        .ending-card .type.best { background: #48bb78; color: #fff; }
+        .ending-card .type.good { background: #4299e1; color: #fff; }
+        .ending-card .type.normal { background: #718096; color: #fff; }
+        .ending-card .type.bad { background: #f56565; color: #fff; }
+        .ending-card .type.hidden { background: #9f7aea; color: #fff; }
+        .ending-card p {
+            color: #a0a0a0;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>逆袭<span>人生</span> - 罗永浩剧情树状图</h1>
+        <p>从负债6亿到涅槃重生，你的选择将决定命运</p>
+    </div>
+
+    <div class="tree-container">
+        <div class="tree">
+            <!-- 起点 -->
+            <div class="level">
+                <div class="node">
+                    <div class="node-box start">
+                        <div class="title">【起点】至暗时刻</div>
+                        <div class="desc">2020年 · 锤子科技负债6亿</div>
+                    </div>
+                    <div class="children">
+                        <!-- A分支：继续做手机 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box" onclick="toggleBranch('branch-a')">
+                                <div class="title">A. 继续做手机</div>
+                                <div class="desc">死磕到底，绝不认输</div>
+                            </div>
+                            <div class="children" id="branch-a">
+                                <div class="node">
+                                    <div class="node-box" onclick="toggleBranch('a1')">
+                                        <div class="title">A1. 坚持高端路线</div>
+                                        <div class="desc">飞黄腾达 or 粉身碎骨</div>
+                                    </div>
+                                    <div class="children" id="a1">
+                                        <div class="node">
+                                            <div class="node-box bad">
+                                                <div class="title">A1-1. 抵押房子继续撑</div>
+                                                <div class="desc">粉身碎骨 · 失败结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box normal">
+                                                <div class="title">A1-2. 及时止损</div>
+                                                <div class="desc">壮士断腕 · 转机结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="node">
+                                    <div class="node-box" onclick="toggleBranch('a2')">
+                                        <div class="title">A2. 性价比路线</div>
+                                        <div class="desc">曲线救国</div>
+                                    </div>
+                                    <div class="children" id="a2">
+                                        <div class="node">
+                                            <div class="node-box normal">
+                                                <div class="title">A2-1. 卖给字节跳动</div>
+                                                <div class="desc">借尸还魂 · 中等结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box good" onclick="toggleBranch('a2-xiaomi')">
+                                                <div class="title">A2-2. 拒绝·加入小米</div>
+                                                <div class="desc">解锁支线C</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="node">
+                                    <div class="node-box" onclick="toggleBranch('a3')">
+                                        <div class="title">A3. 卖掉公司</div>
+                                        <div class="desc">功成身退</div>
+                                    </div>
+                                    <div class="children" id="a3">
+                                        <div class="node">
+                                            <div class="node-box good">
+                                                <div class="title">A3-1. 卖给字节</div>
+                                                <div class="desc">功成身退 · 好结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box bad">
+                                                <div class="title">A3-2. 卖给阿里失败</div>
+                                                <div class="desc">拂袖而去 · 转机结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- B分支：直播带货 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box good" onclick="toggleBranch('branch-b')">
+                                <div class="title">B. 直播带货</div>
+                                <div class="desc">涅槃重生的起点</div>
+                            </div>
+                            <div class="children" id="branch-b">
+                                <div class="node">
+                                    <div class="node-box good" onclick="toggleBranch('b1')">
+                                        <div class="title">B1. 自己单干</div>
+                                        <div class="desc">"交个朋友"直播间</div>
+                                    </div>
+                                    <div class="children" id="b1">
+                                        <div class="node">
+                                            <div class="node-box good">
+                                                <div class="title">B1-1. 虚心接受</div>
+                                                <div class="desc">浪子回头金不换 · 好结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box good" style="border-color: #ffd700; background: linear-gradient(145deg, #b7791f, #975a16);">
+                                                <div class="title">B1-2. 幽默化解 ★</div>
+                                                <div class="desc">涅槃重生 · 最佳结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box normal">
+                                                <div class="title">B1-3. 沉默不语</div>
+                                                <div class="desc">中规中矩 · 普通结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="node">
+                                    <div class="node-box bad" onclick="toggleBranch('b2')">
+                                        <div class="title">B2. 加入MCN</div>
+                                        <div class="desc">被机构坑</div>
+                                    </div>
+                                    <div class="children" id="b2">
+                                        <div class="node">
+                                            <div class="node-box bad">
+                                                <div class="title">B2-1. 忍气吞声</div>
+                                                <div class="desc">忍辱负重 · 坏结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box normal">
+                                                <div class="title">B2-2. 打官司解约</div>
+                                                <div class="desc">绝地反击 · 中等结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- C分支：加入小米 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box" onclick="toggleBranch('branch-c')">
+                                <div class="title">C. 加入小米</div>
+                                <div class="desc">雷军邀请</div>
+                            </div>
+                            <div class="children" id="branch-c">
+                                <div class="node">
+                                    <div class="node-box" onclick="toggleBranch('c1')">
+                                        <div class="title">C1. 负责高端项目</div>
+                                        <div class="desc">理念冲突</div>
+                                    </div>
+                                    <div class="children" id="c1">
+                                        <div class="node">
+                                            <div class="node-box bad">
+                                                <div class="title">C1-1. 坚持己见</div>
+                                                <div class="desc">悲情英雄 · 坏结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box good">
+                                                <div class="title">C1-2. 主动认错</div>
+                                                <div class="desc">卧薪尝胆 · 好结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="node">
+                                    <div class="node-box" onclick="toggleBranch('c2')">
+                                        <div class="title">C2. 负责中低端</div>
+                                        <div class="desc">还债之路</div>
+                                    </div>
+                                    <div class="children" id="c2">
+                                        <div class="node">
+                                            <div class="node-box normal">
+                                                <div class="title">C2-1. 安稳过日子</div>
+                                                <div class="desc">平凡的幸福 · 普通结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box good" style="border-color: #ffd700; background: linear-gradient(145deg, #b7791f, #975a16);">
+                                                <div class="title">C2-2. 合同满后创业 ★</div>
+                                                <div class="desc">理想不死 · 最佳结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- D分支：加入苹果 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box hidden" onclick="toggleBranch('branch-d')">
+                                <div class="title">D. 加入苹果</div>
+                                <div class="desc">库克邀请 · 隐藏剧情</div>
+                            </div>
+                            <div class="children" id="branch-d">
+                                <div class="node">
+                                    <div class="node-box hidden">
+                                        <div class="title">D1. 从基层做起</div>
+                                        <div class="desc">隐藏剧情线</div>
+                                    </div>
+                                    <div class="children">
+                                        <div class="node">
+                                            <div class="node-box hidden" style="border-color: #ffd700;">
+                                                <div class="title">D1-1. 留在苹果 ★</div>
+                                                <div class="desc">苹果的中国人 · 隐藏结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box hidden" style="border-color: #ffd700;">
+                                                <div class="title">D1-2. 海归归来 ★</div>
+                                                <div class="desc">带经验回国 · 隐藏结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- E分支：退出 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box" onclick="toggleBranch('branch-e')">
+                                <div class="title">E. 彻底退出</div>
+                                <div class="desc">回归平凡</div>
+                            </div>
+                            <div class="children" id="branch-e">
+                                <div class="node">
+                                    <div class="node-box hidden" style="border-color: #9f7aea;">
+                                        <div class="title">E1. 回归家庭 ★</div>
+                                        <div class="desc">岁月静好 · 隐藏结局</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-color start"></div>
+            <span>起点</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color normal"></div>
+            <span>普通节点</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color good"></div>
+            <span>好结局</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color bad"></div>
+            <span>坏结局</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color hidden"></div>
+            <span>隐藏剧情/结局</span>
+        </div>
+    </div>
+
+    <div class="endings-section">
+        <h2>结局一览表</h2>
+        <div class="endings-grid">
+            <div class="ending-card">
+                <div class="code">B1-2</div>
+                <h3>涅槃重生</h3>
+                <span class="type best">★ 最佳结局</span>
+                <p>自嘲式回应引爆全网，"交个朋友"成为头部MCN，逆袭成为直播带货之王</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">C2-2</div>
+                <h3>理想不死</h3>
+                <span class="type best">★ 最佳结局</span>
+                <p>在小米还清债务后东山再起，创办AR公司"细红线"，估值10亿</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">B1-1</div>
+                <h3>浪子回头金不换</h3>
+                <span class="type good">好结局</span>
+                <p>真诚鞠躬打动人心，3年还清6亿债务，人民日报点名表扬</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">A3-1</div>
+                <h3>功成身退</h3>
+                <span class="type good">好结局</span>
+                <p>3亿卖给字节，在鸟巢举办最后一场发布会，转身做低调投资人</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">D1-1</div>
+                <h3>苹果的中国人</h3>
+                <span class="type hidden">★ 隐藏结局</span>
+                <p>成为苹果全球副总裁，负责亚太区业务，始终保持中国国籍</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">E1</div>
+                <h3>岁月静好</h3>
+                <span class="type hidden">★ 隐藏结局</span>
+                <p>激流勇退，送孩子上学，在阳台喝茶，"有时候最大的勇气是退出"</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">A1-1</div>
+                <h3>粉身碎骨</h3>
+                <span class="type bad">失败结局</span>
+                <p>房子抵押后依然失败，成了"老赖"，被限制高消费</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">B2-1</div>
+                <h3>忍辱负重</h3>
+                <span class="type bad">坏结局</span>
+                <p>被MCN合同坑了3年，分成被压到20%，落下满身病</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleBranch(id) {
+            const branch = document.getElementById(id);
+            if (branch) {
+                branch.style.display = branch.style.display === 'none' ? 'flex' : 'none';
+            }
+        }
+
+        // 默认展开主要分支
+        document.addEventListener('DOMContentLoaded', function() {
+            // 保持所有分支可见，方便浏览
+        });
+    </script>
+</body>
+</html>

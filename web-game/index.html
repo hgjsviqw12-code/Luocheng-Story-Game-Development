@@ -1,0 +1,2291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>罗诚的故事</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%;
+  background: rgb(15, 15, 25);
+  overflow: hidden;
+}
+#game-container {
+  width: 100%; height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#game-canvas {
+  max-width: 100%;
+  max-height: 100%;
+  cursor: default;
+  image-rendering: pixelated;
+}
+#loading {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgb(20, 20, 36);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  transition: opacity 0.5s;
+}
+#loading.hidden { opacity: 0; pointer-events: none; }
+#loading h1 {
+  color: rgb(233, 69, 96);
+  font-size: 48px;
+  font-family: "Microsoft YaHei", sans-serif;
+  margin-bottom: 30px;
+  letter-spacing: 8px;
+}
+.loading-bar {
+  width: 300px; height: 6px;
+  background: rgb(40, 40, 60);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.loading-fill {
+  width: 0%; height: 100%;
+  background: linear-gradient(90deg, rgb(233, 69, 96), rgb(246, 224, 94));
+  transition: width 0.2s;
+}
+.loading-text {
+  color: rgb(180, 180, 200);
+  font-size: 14px;
+  margin-top: 15px;
+  font-family: "Microsoft YaHei", sans-serif;
+}
+</style>
+</head>
+<body>
+<div id="loading">
+  <h1>罗诚的故事</h1>
+  <div class="loading-bar"><div class="loading-fill" id="loading-fill"></div></div>
+  <div class="loading-text" id="loading-text">正在加载...</div>
+</div>
+<div id="game-container">
+  <canvas id="game-canvas" width="1280" height="720"></canvas>
+</div>
+<script>
+'use strict';
+
+// ===== 常量定义 =====
+const SCREEN_WIDTH = 1280;
+const SCREEN_HEIGHT = 720;
+const FPS = 60;
+
+// 颜色 - 完全对应Python版
+const COLOR_BG_DARK = 'rgb(20, 20, 36)';
+const COLOR_BG_LIGHT = 'rgb(30, 30, 50)';
+const COLOR_DIALOG_BG = 'rgb(45, 45, 68)';
+const COLOR_DIALOG_BORDER = 'rgb(100, 100, 130)';
+const COLOR_TEXT_MAIN = 'rgb(240, 240, 250)';
+const COLOR_TEXT_SOFT = 'rgb(180, 180, 200)';
+const COLOR_ACCENT_RED = 'rgb(233, 69, 96)';
+const COLOR_ACCENT_GOLD = 'rgb(246, 224, 94)';
+const COLOR_ACCENT_PURPLE = 'rgb(159, 122, 234)';
+const COLOR_ACCENT_GREEN = 'rgb(72, 187, 120)';
+const COLOR_ACCENT_BLUE = 'rgb(66, 150, 250)';
+const COLOR_ACCENT_ORANGE = 'rgb(255, 165, 0)';
+
+const COLOR_IDEAL = 'rgb(255, 100, 100)';
+const COLOR_REALITY = 'rgb(100, 150, 255)';
+const COLOR_WARMTH = 'rgb(255, 180, 100)';
+
+// 状态
+const STATE = {
+  TITLE: 'title',
+  DISCLAIMER: 'disclaimer',
+  DIALOG: 'dialog',
+  CHOICE: 'choice',
+  ENDING: 'ending',
+  GALLERY: 'gallery',
+  SAVE: 'save',
+  SETTINGS: 'settings'
+};
+
+// 背景映射
+const BG_MAP = {
+  'home': 'bg_home_old',
+  'office_night': 'bg_office_night',
+  'office_day': 'bg_office_day',
+  'office_dark': 'bg_office_dark',
+  'livestudio': 'bg_livestudio',
+  'startup': 'bg_small_office',
+  'office_modern': 'bg_office_modern',
+  'factory': 'bg_factory',
+  'xiaomi_office': 'bg_xiaomi',
+  'apple_office': 'bg_apple',
+  'classroom': 'bg_classroom',
+  'noodle_shop': 'bg_noodle_shop',
+  'bar': 'bg_bar',
+  'street_food': 'bg_street_food',
+  'venue': 'bg_venue',
+  'celebration': 'bg_celebration',
+  'bookstore': 'bg_bookstore',
+  'corridor': 'bg_corridor',
+  'hospital': 'bg_hospital',
+  'press': 'bg_press',
+  'airport': 'bg_airport',
+  'conference': 'bg_conference',
+  'balcony': 'bg_balcony',
+  'train_platform': 'bg_train_platform',
+  'room_rent': 'bg_room_rent',
+  'black': 'bg_black',
+  'inn': 'bg_inn',
+  'farmyard': 'bg_farmyard',
+  'restaurant': 'bg_restaurant',
+  'teacher_office': 'bg_teacher_office'
+};
+
+// 渐变背景回退
+const GRADIENT_FALLBACK = {
+  'black': [[0, 0, 0], [10, 10, 20]],
+  'office_night': [[20, 30, 50], [30, 40, 70]],
+  'office_day': [[70, 90, 110], [100, 120, 140]],
+  'office_dark': [[15, 10, 15], [30, 25, 35]],
+  'livestudio': [[60, 30, 80], [100, 50, 120]],
+  'xiaomi_office': [[30, 50, 80], [70, 100, 140]],
+  'apple_office': [[200, 200, 210], [230, 230, 240]],
+  'factory': [[80, 50, 30], [120, 80, 50]],
+  'startup': [[40, 50, 70], [80, 100, 130]],
+  'home': [[70, 60, 50], [120, 100, 90]],
+  'office_modern': [[50, 70, 90], [90, 110, 130]]
+};
+
+// 场景音乐映射 - 对应Python版scene_music_map
+const SCENE_MUSIC_MAP = {
+  'intro': 'warm',
+  'prologue_1_1': 'warm',
+  'prologue_1_2': 'warm',
+  'prologue_1_3': 'warm',
+  'prologue_4_2': 'warm',
+  'prologue_4_3a': 'warm',
+  'prologue_4_3b': 'warm',
+  'prologue_4_3c': 'warm',
+  'prologue_4_4': 'warm',
+  'prologue_5_1': 'warm',
+  'prologue_5_2': 'warm',
+  'prologue_7_1': 'warm',
+  'prologue_7_2': 'celebration',
+  'branch_e_1': 'warm',
+  'branch_e_2_2': 'warm',
+  'branch_e_3': 'warm',
+  'prologue_8': 'tense',
+  'branch_a_1': 'tense',
+  'branch_a_2': 'tense',
+  'branch_a_3': 'tense',
+  'branch_a_4': 'tense',
+  'branch_a_5': 'tense',
+  'branch_a_6': 'tense',
+  'branch_a_7': 'tense',
+  'branch_b_4': 'tense',
+  'branch_b_5': 'tense',
+  'branch_c_1': 'tense',
+  'branch_c_2': 'tense',
+  'branch_c_3': 'tense',
+  'branch_c_4': 'tense'
+};
+
+// 说话者头像映射
+const SPEAKER_CHAR_MAP = {
+  '罗诚': 'luocheng_mid',
+  '妻子': 'wife',
+  '老王': 'laowang',
+  '老周': 'laozhou',
+  '程总': 'cheng',
+  '小张': 'xiaozhang',
+  'Coco': 'coco',
+  '吴老板': 'wu_laoban'
+};
+
+// ===== 字体大小 =====
+const FONT_SIZES = {
+  large: 36,
+  title: 28,
+  name: 22,
+  text: 20,
+  small: 16,
+  tiny: 14
+};
+
+// ===== 工具函数 =====
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function drawGradientBackground(ctx, colors) {
+  const grad = ctx.createLinearGradient(0, 0, 0, SCREEN_HEIGHT);
+  grad.addColorStop(0, `rgb(${colors[0][0]},${colors[0][1]},${colors[0][2]})`);
+  grad.addColorStop(1, `rgb(${colors[1][0]},${colors[1][1]},${colors[1][2]})`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+}
+
+function wrapText(ctx, text, maxWidth) {
+  const lines = [];
+  if (!text) return lines;
+  let current = '';
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const test = current + char;
+    if (ctx.measureText(test).width >= maxWidth && current.length > 0) {
+      lines.push(current.slice(0, -1) || current);
+      current = current[current.length - 1] || char;
+    } else {
+      current = test;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+// ===== 游戏主类 =====
+class Game {
+  constructor() {
+    this.canvas = document.getElementById('game-canvas');
+    this.ctx = this.ctx = this.canvas.getContext('2d');
+
+    // 状态
+    this.state = STATE.DISCLAIMER;
+    this.currentSceneId = 'disclaimer';
+    this.currentLineIndex = 0;
+
+    // 属性 - 初始值会从story.json加载
+    this.ideal = 20;
+    this.reality = 20;
+    this.warmth = 20;
+    this.initialStats = { ideal: 20, reality: 20, warmth: 20 };
+
+    // 文本
+    this.currentSpeaker = 'none';
+    this.currentCharacter = 'none';
+    this.textTarget = '';
+    this.textDisplay = '';
+    this.textComplete = false;
+    this.textTimer = 0;
+    this.textSpeed = 25;
+
+    // 选择
+    this.currentChoices = [];
+    this.hoverChoice = -1;
+
+    // 数据
+    this.storyData = null;
+    this.playCount = 0;
+    this.unlockedEndings = [];
+    this.unlockedAchievements = [];
+    this.saveSlots = [null, null, null, null, null, null];
+
+    // 资源
+    this.backgrounds = {};
+    this.characters = {};
+    this.audio = {};
+    this.currentTrack = null;
+    this.musicVolume = 0.5;
+    this.musicEnabled = true;
+
+    // UI状态
+    this.animFrame = 0;
+    this.hoverChoice = -1;
+    this.mouseX = 0;
+    this.mouseY = 0;
+
+    // 设置界面
+    this.settingsResetHover = false;
+    this.settingsSaveHover = false;
+    this.showResetConfirm = false;
+    this.draggingVolume = false;
+    this.resetConfirmYesHover = false;
+    this.resetConfirmNoHover = false;
+
+    // 成就
+    this.achievementPopup = null;
+    this.achievementTimer = 0;
+
+    // 当前结局
+    this.currentEnding = null;
+
+    // 加载
+    this.loadAll();
+  }
+
+  async loadAll() {
+    const fill = document.getElementById('loading-fill');
+    const text = document.getElementById('loading-text');
+
+    // 1. 剧情数据
+    text.textContent = '加载剧情数据...';
+    fill.style.width = '15%';
+    await this.loadStory();
+
+    // 2. 背景图
+    text.textContent = '加载背景图片...';
+    fill.style.width = '40%';
+    await this.loadBackgrounds();
+
+    // 3. 角色头像
+    text.textContent = '加载角色头像...';
+    fill.style.width = '60%';
+    await this.loadCharacters();
+
+    // 4. 存档
+    text.textContent = '加载存档数据...';
+    fill.style.width = '75%';
+    this.loadStorage();
+
+    // 5. 音频
+    text.textContent = '加载音乐资源...';
+    fill.style.width = '90%';
+    this.loadAudio();
+
+    // 完成
+    fill.style.width = '100%';
+    text.textContent = '准备开始...';
+
+    setTimeout(() => {
+      document.getElementById('loading').classList.add('hidden');
+      // 加载免责声明场景，但保持免责声明状态
+      this.loadScene('disclaimer');
+      this.state = STATE.DISCLAIMER;
+      this.bindEvents();
+      this.startLoop();
+    }, 300);
+  }
+
+  async loadStory() {
+    const res = await fetch('data/story.json');
+    this.storyData = await res.json();
+    if (this.storyData.initial_stats) {
+      this.initialStats = { ...this.storyData.initial_stats };
+      this.ideal = this.initialStats.ideal || 20;
+      this.reality = this.initialStats.reality || 20;
+      this.warmth = this.initialStats.warmth || 20;
+    }
+  }
+
+  async loadBackgrounds() {
+    const bgList = Object.values(BG_MAP);
+    const unique = [...new Set(bgList)];
+    const promises = unique.map(name => {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => { this.backgrounds[name] = img; resolve(); };
+        img.onerror = () => resolve();
+        img.src = `assets/backgrounds/${name}.png`;
+      });
+    });
+    await Promise.all(promises);
+  }
+
+  async loadCharacters() {
+    const chars = Object.values(SPEAKER_CHAR_MAP);
+    const unique = [...new Set(chars)];
+    const promises = unique.map(name => {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => { this.characters[name] = img; resolve(); };
+        img.onerror = () => resolve();
+        img.src = `assets/characters/${name}.png`;
+      });
+    });
+    await Promise.all(promises);
+  }
+
+  loadAudio() {
+    ['menu', 'story', 'warm', 'tense', 'ending', 'celebration'].forEach(name => {
+      const a = new Audio(`assets/audio/${name}.mp3`);
+      a.loop = true;
+      a.volume = this.musicVolume;
+      this.audio[name] = a;
+    });
+  }
+
+  loadStorage() {
+    // 通关次数
+    const pc = localStorage.getItem('lc_playcount');
+    if (pc) this.playCount = parseInt(pc) || 0;
+
+    // 结局
+    const ue = localStorage.getItem('lc_endings');
+    if (ue) this.unlockedEndings = JSON.parse(ue) || [];
+
+    // 成就
+    const ua = localStorage.getItem('lc_achievements');
+    if (ua) this.unlockedAchievements = JSON.parse(ua) || [];
+
+    // 音量
+    const vol = localStorage.getItem('lc_volume');
+    if (vol) {
+      this.musicVolume = parseFloat(vol) || 0.5;
+      this.musicEnabled = this.musicVolume > 0;
+    }
+
+    // 存档
+    for (let i = 0; i < 6; i++) {
+      const s = localStorage.getItem(`lc_save_${i}`);
+      if (s) {
+        try { this.saveSlots[i] = JSON.parse(s); } catch(e) {}
+      }
+    }
+  }
+
+  saveStorage() {
+    localStorage.setItem('lc_playcount', this.playCount.toString());
+    localStorage.setItem('lc_endings', JSON.stringify(this.unlockedEndings));
+    localStorage.setItem('lc_achievements', JSON.stringify(this.unlockedAchievements));
+  }
+
+  saveVolume() {
+    localStorage.setItem('lc_volume', this.musicVolume.toString());
+  }
+
+  // ===== 音乐 =====
+  playMusic(trackName) {
+    if (!this.musicEnabled || !this.audio[trackName]) return;
+    if (this.currentTrack === trackName) return;
+
+    if (this.currentTrack && this.audio[this.currentTrack]) {
+      this.audio[this.currentTrack].pause();
+      this.audio[this.currentTrack].currentTime = 0;
+    }
+    this.currentTrack = trackName;
+    this.audio[trackName].volume = this.musicVolume;
+    this.audio[trackName].play().catch(() => {});
+  }
+
+  stopMusic() {
+    if (this.currentTrack && this.audio[this.currentTrack]) {
+      this.audio[this.currentTrack].pause();
+      this.audio[this.currentTrack].currentTime = 0;
+    }
+    this.currentTrack = null;
+  }
+
+  setVolume(v) {
+    this.musicVolume = Math.max(0, Math.min(1, v));
+    this.musicEnabled = v > 0;
+    Object.values(this.audio).forEach(a => { a.volume = this.musicVolume; });
+    if (v === 0) this.stopMusic();
+  }
+
+  playMusicForScene(sceneId) {
+    const track = SCENE_MUSIC_MAP[sceneId];
+    if (track) this.playMusic(track);
+    else this.playMusic('story');
+  }
+
+  // ===== 场景管理 =====
+  getCurrentScene() {
+    return (this.storyData && this.storyData.scenes && this.storyData.scenes[this.currentSceneId]) || {};
+  }
+
+  loadScene(sceneId) {
+    const scene = (this.storyData.scenes || {})[sceneId];
+    if (!scene) return;
+
+    this.currentSceneId = sceneId;
+    this.currentLineIndex = 0;
+    this.currentChoices = scene.choices || [];
+
+    // 跳过空行
+    this.skipEmptyLines();
+    this.loadCurrentLine();
+
+    // 音乐
+    if (this.state === STATE.DIALOG || this.state === STATE.CHOICE) {
+      this.playMusicForScene(sceneId);
+    }
+
+    // 状态切换
+    if (this.currentChoices.length > 0) {
+      this.state = STATE.CHOICE;
+      this.hoverChoice = 0;
+      this.skipLockedChoices();
+    } else {
+      this.state = STATE.DIALOG;
+    }
+  }
+
+  skipEmptyLines() {
+    const scene = this.getCurrentScene();
+    const lines = scene.lines || [];
+    while (this.currentLineIndex < lines.length) {
+      const line = lines[this.currentLineIndex];
+      if (line && line.text && line.text.trim() !== '') break;
+      this.currentLineIndex++;
+    }
+  }
+
+  loadCurrentLine() {
+    const scene = this.getCurrentScene();
+    const lines = scene.lines || [];
+
+    if (this.currentLineIndex >= lines.length) {
+      // 场景结束
+      if (scene.ending) {
+        this.showEnding(scene.ending);
+        return;
+      }
+      if (scene.choices && scene.choices.length > 0) {
+        this.state = STATE.CHOICE;
+        this.currentChoices = scene.choices;
+        this.hoverChoice = 0;
+        this.skipLockedChoices();
+        return;
+      }
+      if (scene.next_scene) {
+        this.loadScene(scene.next_scene);
+        return;
+      }
+      return;
+    }
+
+    const line = lines[this.currentLineIndex];
+    this.currentSpeaker = line.speaker || scene.speaker || '';
+    if (!this.currentSpeaker) this.currentSpeaker = '旁白';
+    this.currentCharacter = line.character || 'none';
+
+    this.textTarget = line.text || '';
+    this.textDisplay = '';
+    this.textTimer = 0;
+    this.textComplete = false;
+  }
+
+  advanceDialog() {
+    if (!this.textComplete) {
+      this.textDisplay = this.textTarget;
+      this.textComplete = true;
+      return;
+    }
+
+    this.currentLineIndex++;
+    const scene = this.getCurrentScene();
+    const lines = scene.lines || [];
+
+    if (this.currentLineIndex < lines.length) {
+      this.skipEmptyLines();
+      this.loadCurrentLine();
+      this.autoSave();
+    } else {
+      // 场景成就
+      if (scene.achievement) {
+        this.unlockAchievement(scene.achievement.id, scene.achievement.name);
+      }
+
+      const choices = scene.choices;
+      if (choices && choices.length > 0) {
+        const allLocked = choices.every(c => this.isChoiceLocked(c));
+        if (allLocked && scene.next_scene) {
+          this.loadScene(scene.next_scene);
+          return;
+        }
+        this.state = STATE.CHOICE;
+        this.currentChoices = choices;
+        this.hoverChoice = 0;
+        this.skipLockedChoices();
+      } else if (scene.next_scene) {
+        this.loadScene(scene.next_scene);
+      } else if (scene.ending) {
+        this.showEnding(scene.ending);
+      }
+    }
+  }
+
+  isChoiceLocked(choice) {
+    if (choice.locked && this.playCount === 0) return true;
+    if (choice.requires_first && this.playCount >= 1) return true;
+    return false;
+  }
+
+  skipLockedChoices() {
+    while (this.hoverChoice < this.currentChoices.length) {
+      if (!this.isChoiceLocked(this.currentChoices[this.hoverChoice])) break;
+      this.hoverChoice++;
+    }
+  }
+
+  chooseOption(idx) {
+    if (idx < 0 || idx >= this.currentChoices.length) return;
+    const choice = this.currentChoices[idx];
+    if (this.isChoiceLocked(choice)) return;
+
+    // 属性变化
+    const sc = choice.stat_changes || {};
+    this.ideal = Math.max(0, Math.min(100, this.ideal + (sc.ideal || 0)));
+    this.reality = Math.max(0, Math.min(100, this.reality + (sc.reality || 0)));
+    this.warmth = Math.max(0, Math.min(100, this.warmth + (sc.warmth || 0)));
+
+    this.currentSceneId = choice.next_scene;
+    this.currentLineIndex = 0;
+    this.state = STATE.DIALOG;
+    this.loadScene(choice.next_scene);
+    this.autoSave();
+  }
+
+  showEnding(endingData) {
+    this.state = STATE.ENDING;
+    this.currentEnding = endingData;
+
+    this.playCount++;
+    this.saveStorage();
+
+    const endingId = endingData.id || endingData;
+    if (typeof endingData === 'string') endingData = { id: endingData, title: endingData };
+    const eid = endingData.id || endingData;
+    if (!this.unlockedEndings.includes(eid)) {
+      this.unlockedEndings.push(eid);
+      this.saveStorage();
+    }
+
+    if (endingData.achievement) {
+      this.unlockAchievement(endingData.achievement.id || endingData.achievement, endingData.achievement.name || endingData.achievement);
+    }
+
+    this.playMusic('ending');
+    this.autoSave();
+  }
+
+  unlockAchievement(id, name) {
+    if (!this.unlockedAchievements.includes(id)) {
+      this.unlockedAchievements.push(id);
+      this.saveStorage();
+      this.achievementPopup = name;
+      this.achievementTimer = 180; // 3秒 at 60fps
+    }
+  }
+
+  autoSave() {
+    const save = {
+      sceneId: this.currentSceneId,
+      lineIndex: this.currentLineIndex,
+      ideal: this.ideal,
+      reality: this.reality,
+      warmth: this.warmth,
+      timestamp: Date.now()
+    };
+    localStorage.setItem('lc_save_0', JSON.stringify(save));
+    this.saveSlots[0] = save;
+  }
+
+  saveGame(slot) {
+    const save = {
+      sceneId: this.currentSceneId,
+      lineIndex: this.currentLineIndex,
+      ideal: this.ideal,
+      reality: this.reality,
+      warmth: this.warmth,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(`lc_save_${slot}`, JSON.stringify(save));
+    this.saveSlots[slot] = save;
+  }
+
+  loadGame(slot) {
+    const save = this.saveSlots[slot];
+    if (!save) return false;
+    this.currentSceneId = save.sceneId;
+    this.currentLineIndex = save.lineIndex;
+    this.ideal = save.ideal || 20;
+    this.reality = save.reality || 20;
+    this.warmth = save.warmth || 20;
+    this.state = STATE.DIALOG;
+    this.loadScene(save.sceneId);
+    this.currentLineIndex = save.lineIndex;
+    this.loadCurrentLine();
+    return true;
+  }
+
+  resetAllProgress() {
+    for (let i = 0; i < 6; i++) {
+      localStorage.removeItem(`lc_save_${i}`);
+    }
+    localStorage.removeItem('lc_playcount');
+    localStorage.removeItem('lc_endings');
+    localStorage.removeItem('lc_achievements');
+    localStorage.removeItem('lc_volume');
+
+    this.playCount = 0;
+    this.unlockedEndings = [];
+    this.unlockedAchievements = [];
+    this.saveSlots = [null, null, null, null, null, null];
+    this.ideal = this.initialStats.ideal;
+    this.reality = this.initialStats.reality;
+    this.warmth = this.initialStats.warmth;
+    this.musicVolume = 0.5;
+    this.musicEnabled = true;
+    Object.values(this.audio).forEach(a => { a.volume = 0.5; });
+  }
+
+  // ===== 游戏循环 =====
+  startLoop() {
+    const loop = () => {
+      this.animFrame++;
+      this.update();
+      this.render();
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+
+  update() {
+    // 文字动画
+    if (this.state === STATE.DIALOG && !this.textComplete && this.textTarget) {
+      this.textTimer += 1000 / FPS;
+      if (this.textTimer >= this.textSpeed) {
+        this.textTimer = 0;
+        if (this.textDisplay.length < this.textTarget.length) {
+          this.textDisplay += this.textTarget[this.textDisplay.length];
+        } else {
+          this.textComplete = true;
+        }
+      }
+    }
+
+    // 成就计时
+    if (this.achievementTimer > 0) {
+      this.achievementTimer--;
+      if (this.achievementTimer <= 0) this.achievementPopup = null;
+    }
+
+    // 音量拖动
+    if (this.draggingVolume && this.state === STATE.SETTINGS) {
+      const panelX = (SCREEN_WIDTH - 600) / 2;
+      const sliderX = panelX + 40;
+      const sliderW = 600 - 80;
+      const newVol = Math.max(0, Math.min(1, (this.mouseX - sliderX) / sliderW));
+      this.setVolume(newVol);
+    }
+  }
+
+  render() {
+    const ctx = this.ctx;
+    ctx.fillStyle = COLOR_BG_DARK;
+    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.textBaseline = 'top';
+
+    switch (this.state) {
+      case STATE.TITLE: this.drawTitle(); break;
+      case STATE.DISCLAIMER: this.drawDisclaimer(); break;
+      case STATE.DIALOG: this.drawDialog(); break;
+      case STATE.CHOICE: this.drawChoice(); break;
+      case STATE.ENDING: this.drawEnding(); break;
+      case STATE.GALLERY: this.drawGallery(); break;
+      case STATE.SAVE: this.drawSave(); break;
+      case STATE.SETTINGS: this.drawSettings(); break;
+    }
+
+    // 成就弹窗
+    this.drawAchievementPopup();
+  }
+
+  // ===== 标题界面 - 对应Python draw_title_screen
+  drawTitle() {
+    const ctx = this.ctx;
+    this.playMusic('menu');
+
+    // 动态渐变背景
+    const r1 = 20 + Math.floor(10 * Math.sin(this.animFrame * 0.01));
+    const g1 = 20 + Math.floor(10 * Math.cos(this.animFrame * 0.015));
+    const b1 = 40 + Math.floor(15 * Math.sin(this.animFrame * 0.008));
+    drawGradientBackground(ctx, [[r1, g1, b1], [50, 50, 90]]);
+
+    // 装饰星星
+    ctx.fillStyle = COLOR_ACCENT_GOLD;
+    for (let i = 0; i < 20; i++) {
+      const x = (i * 67 + this.animFrame) % SCREEN_WIDTH;
+      const y = (i * 113) % (SCREEN_HEIGHT / 2);
+      ctx.beginPath();
+      ctx.arc(x, y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 标题
+    const titleY = 150;
+    ctx.font = `36px "Microsoft YaHei", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgb(0,0,0)';
+    ctx.fillText('罗诚的故事', SCREEN_WIDTH / 2 + 4, titleY + 4);
+    ctx.fillStyle = COLOR_ACCENT_RED;
+    ctx.fillText('罗诚的故事', SCREEN_WIDTH / 2, titleY);
+
+    // 副标题
+    ctx.font = `28px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_ACCENT_GOLD;
+    ctx.fillText('从负债数亿到涅槃重生', SCREEN_WIDTH / 2, titleY + 60);
+
+    // 通关次数
+    if (this.playCount >= 1) {
+      ctx.font = `16px "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = COLOR_ACCENT_PURPLE;
+      ctx.fillText(`已通关 ${this.playCount} 次 | 二周目已解锁D支线`, SCREEN_WIDTH / 2, titleY + 100);
+    }
+
+    // 菜单按钮 - 5个按钮，y从330开始，间距65
+    const hasSave = this.saveSlots[0] !== null;
+    const menuItems = [
+      { text: '1. 开始游戏', color: COLOR_ACCENT_GREEN, enabled: true },
+      { text: '2. 继续游戏', color: hasSave ? COLOR_ACCENT_BLUE : 'rgb(80,80,100)', enabled: hasSave },
+      { text: '3. 结局图鉴', color: COLOR_ACCENT_PURPLE, enabled: true },
+      { text: '4. 设置', color: COLOR_ACCENT_ORANGE, enabled: true },
+      { text: '5. 退出游戏', color: COLOR_ACCENT_RED, enabled: true }
+    ];
+
+    let y = 330;
+    menuItems.forEach((item, idx) => {
+      const rectX = SCREEN_WIDTH / 2 - 150;
+      const rectW = 300;
+      const rectH = 50;
+
+      const bgColor = item.enabled ? 'rgb(40,40,60)' : 'rgb(30,30,45)';
+      const borderColor = item.enabled ? item.color : 'rgb(50,50,70)';
+
+      ctx.fillStyle = bgColor;
+      roundRect(ctx, rectX, y, rectW, rectH, 8);
+      ctx.fill();
+
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 2;
+      roundRect(ctx, rectX, y, rectW, rectH, 8);
+      ctx.stroke();
+
+      ctx.font = `28px "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = item.color;
+      ctx.textAlign = 'left';
+      ctx.fillText(item.text, rectX + 60, y + 13);
+
+      y += 65;
+    });
+
+    // 提示
+    ctx.font = `16px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_TEXT_SOFT;
+    ctx.textAlign = 'center';
+    ctx.fillText('按数字键 1-5 选择 | 点击菜单也可', SCREEN_WIDTH / 2, SCREEN_HEIGHT - 50);
+
+    // 版本
+    ctx.font = `16px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = 'rgb(80, 80, 110)';
+    ctx.textAlign = 'right';
+    ctx.fillText('v2.0  |  Python + Pygame', SCREEN_WIDTH - 20, SCREEN_HEIGHT - 30);
+  }
+
+  // ===== 免责声明 =====
+  drawDisclaimer() {
+    const ctx = this.ctx;
+
+    ctx.fillStyle = 'rgb(0, 0, 0)';
+    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    ctx.textBaseline = 'top';
+
+    const scene = this.getCurrentScene();
+    const lines = scene.lines || [];
+
+    let y = 150;
+    ctx.font = `20px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_TEXT_MAIN;
+    ctx.textAlign = 'center';
+
+    for (let line of lines) {
+      if (line.text) {
+        ctx.fillText(line.text, SCREEN_WIDTH / 2, y);
+        y += 35;
+      }
+    }
+
+    ctx.font = `16px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_TEXT_SOFT;
+    ctx.fillText('点击或按空格继续', SCREEN_WIDTH / 2, SCREEN_HEIGHT - 100);
+  }
+
+  // ===== 对话界面 =====
+  drawDialog() {
+    const ctx = this.ctx;
+
+    // 背景
+    this.drawBackground();
+
+    // 状态栏
+    this.drawStatusBar();
+
+    // 对话框
+    this.drawDialogBox();
+  }
+
+  drawBackground() {
+    const ctx = this.ctx;
+    const scene = this.getCurrentScene();
+    const bgType = scene.background || 'office_night';
+
+    const imgKey = BG_MAP[bgType];
+    if (imgKey && this.backgrounds[imgKey]) {
+      ctx.drawImage(this.backgrounds[imgKey], 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+      // 暗色叠加
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+      ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+      return;
+    }
+
+    // 渐变回退
+    const colors = GRADIENT_FALLBACK[bgType] || GRADIENT_FALLBACK['office_night'];
+    drawGradientBackground(ctx, colors);
+  }
+
+  drawFireIcon(x, y, color) {
+    const ctx = this.ctx;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x + 8, y);
+    ctx.lineTo(x + 2, y + 10);
+    ctx.lineTo(x + 5, y + 7);
+    ctx.lineTo(x + 3, y + 14);
+    ctx.lineTo(x + 13, y + 14);
+    ctx.lineTo(x + 11, y + 7);
+    ctx.lineTo(x + 14, y + 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgb(255, 220, 100)';
+    ctx.beginPath();
+    ctx.moveTo(x + 8, y + 4);
+    ctx.lineTo(x + 5, y + 10);
+    ctx.lineTo(x + 7, y + 8);
+    ctx.lineTo(x + 6, y + 13);
+    ctx.lineTo(x + 10, y + 13);
+    ctx.lineTo(x + 9, y + 8);
+    ctx.lineTo(x + 11, y + 10);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  drawBriefcaseIcon(x, y, color) {
+    const ctx = this.ctx;
+    ctx.fillStyle = color;
+    roundRect(ctx, x + 2, y + 5, 12, 9, 1);
+    ctx.fill();
+    roundRect(ctx, x + 5, y + 2, 6, 4, 1);
+    ctx.fill();
+    ctx.fillStyle = 'rgb(25, 25, 45)';
+    ctx.fillRect(x + 7, y + 8, 2, 3);
+    ctx.strokeStyle = 'rgb(20, 20, 40)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + 2, y + 8);
+    ctx.lineTo(x + 14, y + 8);
+    ctx.stroke();
+  }
+
+  drawHeartIcon(x, y, color) {
+    const ctx = this.ctx;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x + 8, y + 13);
+    ctx.lineTo(x + 1, y + 6);
+    ctx.lineTo(x + 1, y + 3);
+    ctx.lineTo(x + 4, y + 1);
+    ctx.lineTo(x + 8, y + 4);
+    ctx.lineTo(x + 12, y + 1);
+    ctx.lineTo(x + 15, y + 3);
+    ctx.lineTo(x + 15, y + 6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + 4, y + 4, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(x + 12, y + 4, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  drawStatusBar() {
+    const ctx = this.ctx;
+
+    // 状态栏背景 - 高55px
+    ctx.fillStyle = 'rgb(25, 25, 45)';
+    ctx.fillRect(0, 0, SCREEN_WIDTH, 55);
+
+    // 底边线
+    ctx.strokeStyle = 'rgb(50, 50, 80)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, 54);
+    ctx.lineTo(SCREEN_WIDTH, 54);
+    ctx.stroke();
+
+    // 属性条
+    const stats = [
+      { name: '理想', value: this.ideal, color: COLOR_IDEAL, icon: 'fire' },
+      { name: '现实', value: this.reality, color: COLOR_REALITY, icon: 'briefcase' },
+      { name: '温情', value: this.warmth, color: COLOR_WARMTH, icon: 'heart' }
+    ];
+
+    let x = 20;
+    const iconY = 10;
+    stats.forEach(stat => {
+      if (stat.icon === 'fire') {
+        this.drawFireIcon(x, iconY, stat.color);
+      } else if (stat.icon === 'briefcase') {
+        this.drawBriefcaseIcon(x, iconY, stat.color);
+      } else if (stat.icon === 'heart') {
+        this.drawHeartIcon(x, iconY, stat.color);
+      }
+
+      ctx.font = `16px "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = stat.color;
+      ctx.textAlign = 'left';
+      ctx.fillText(stat.name, x + 20, 8);
+
+      // 进度条背景
+      const barX = x + 60;
+      const barW = 100;
+      ctx.fillStyle = 'rgb(40, 40, 60)';
+      roundRect(ctx, barX, 10, barW, 12, 6);
+      ctx.fill();
+
+      // 进度条填充
+      const fillW = Math.floor(barW * Math.min(stat.value, 100) / 100);
+      if (fillW > 0) {
+        ctx.fillStyle = stat.color;
+        roundRect(ctx, barX, 10, fillW, 12, 6);
+        ctx.fill();
+      }
+
+      // 数值
+      ctx.font = `14px "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = COLOR_TEXT_MAIN;
+      ctx.fillText(stat.value.toString(), barX + barW + 5, 9);
+
+      x += 200;
+    });
+
+    // 章节名
+    const scene = this.getCurrentScene();
+    const title = scene.title || '';
+    if (title) {
+      ctx.font = `16px "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = COLOR_ACCENT_RED;
+      ctx.textAlign = 'right';
+      ctx.fillText(`【${title}】`, SCREEN_WIDTH - 20, 18);
+    }
+  }
+
+  drawDialogBox() {
+    const ctx = this.ctx;
+
+    // 对话框 - 高220，距底部250，左右各40
+    const dlgX = 40;
+    const dlgY = SCREEN_HEIGHT - 250;
+    const dlgW = SCREEN_WIDTH - 80;
+    const dlgH = 220;
+
+    ctx.fillStyle = COLOR_DIALOG_BG;
+    roundRect(ctx, dlgX, dlgY, dlgW, dlgH, 12);
+    ctx.fill();
+
+    ctx.strokeStyle = COLOR_DIALOG_BORDER;
+    ctx.lineWidth = 2;
+    roundRect(ctx, dlgX, dlgY, dlgW, dlgH, 12);
+    ctx.stroke();
+
+    // 顶部红线
+    ctx.strokeStyle = COLOR_ACCENT_RED;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(dlgX + 20, dlgY + 2);
+    ctx.lineTo(dlgX + dlgW - 20, dlgY + 2);
+    ctx.stroke();
+
+    // 确定角色头像
+    let charKey = null;
+    let isNarrator = false;
+
+    if (this.currentCharacter && this.currentCharacter !== 'none') {
+      charKey = this.currentCharacter;
+    } else if (this.currentSpeaker && this.currentSpeaker !== 'none' && this.currentSpeaker !== '旁白') {
+      charKey = SPEAKER_CHAR_MAP[this.currentSpeaker];
+    } else if (this.currentSpeaker === '旁白' || !this.currentSpeaker) {
+      isNarrator = true;
+    }
+
+    const hasAvatar = charKey && this.characters[charKey];
+
+    // 头像 - 对话框左侧内部
+    if (hasAvatar) {
+      const avatar = this.characters[charKey];
+      const avatarX = dlgX + 25;
+      const avatarY = dlgY + 60;
+      const avatarSize = 120;
+
+      // 头像背景框
+      ctx.fillStyle = 'rgb(30, 25, 35)';
+      roundRect(ctx, avatarX - 5, avatarY - 5, 130, 130, 10);
+      ctx.fill();
+
+      ctx.strokeStyle = COLOR_DIALOG_BORDER;
+      ctx.lineWidth = 2;
+      roundRect(ctx, avatarX - 5, avatarY - 5, 130, 130, 10);
+      ctx.stroke();
+
+      ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
+    }
+
+    // 说话者名字标签
+    let labelX = dlgX + 25;
+    if (hasAvatar) labelX = dlgX + 170;
+
+    if (this.currentSpeaker && this.currentSpeaker !== 'none') {
+      ctx.font = `22px "Microsoft YaHei", sans-serif`;
+      const nameW = Math.max(100, ctx.measureText(this.currentSpeaker).width + 24);
+      const nameBgX = labelX;
+      const nameBgY = dlgY - 1;
+      const nameBgW = nameW;
+      const nameBgH = 30;
+
+      ctx.fillStyle = COLOR_ACCENT_RED;
+      // 底部圆角矩形
+      ctx.beginPath();
+      ctx.moveTo(nameBgX, nameBgY);
+      ctx.lineTo(nameBgX + nameBgW, nameBgY);
+      ctx.lineTo(nameBgX + nameBgW, nameBgY + nameBgH);
+      ctx.lineTo(nameBgX, nameBgY + nameBgH);
+      ctx.closePath();
+      ctx.fill();
+      // 只画底部圆角 - 简化处理
+      ctx.fillRect(nameBgX, nameBgY, nameBgW, nameBgH);
+      // 底部两个圆角
+      ctx.beginPath();
+      ctx.arc(nameBgX + 6, nameBgY + nameBgH - 6, 6, Math.PI, Math.PI * 0.5, true);
+      ctx.arc(nameBgX + nameBgW - 6, nameBgY + nameBgH - 6, 6, Math.PI * 0.5, 0, true);
+      ctx.fill();
+
+      ctx.fillStyle = 'rgb(255, 255, 255)';
+      ctx.textAlign = 'left';
+      ctx.fillText(this.currentSpeaker, nameBgX + 12, nameBgY + 4);
+    } else if (isNarrator) {
+      const nameW = 80;
+      const nameBgX = labelX;
+      const nameBgY = dlgY - 1;
+      const nameBgH = 30;
+
+      ctx.fillStyle = 'rgb(90, 90, 120)';
+      ctx.fillRect(nameBgX, nameBgY, nameW, nameBgH);
+
+      ctx.fillStyle = 'rgb(210, 210, 230)';
+      ctx.font = `22px "Microsoft YaHei", sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.fillText('旁白', nameBgX + 16, nameBgY + 4);
+    }
+
+    // 对话文本
+    let textX = dlgX + 40;
+    if (hasAvatar) textX = dlgX + 170;
+    const textMaxW = dlgW - (textX - dlgX) - 40;
+
+    ctx.font = `20px "Microsoft YaHei", sans-serif`;
+    const lines = wrapText(ctx, this.textDisplay, textMaxW);
+    let y = dlgY + 50;
+    for (let i = 0; i < Math.min(lines.length, 6); i++) {
+      ctx.fillStyle = COLOR_TEXT_MAIN;
+      ctx.fillText(lines[i], textX, y);
+      y += 30;
+    }
+
+    // 点击继续提示 - 闪烁
+    if (this.textComplete) {
+      const alpha = 128 + Math.floor(127 * Math.sin(this.animFrame * 0.05));
+      ctx.font = `16px "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = `rgba(150, 150, 170, ${alpha / 255})`;
+      ctx.textAlign = 'right';
+      ctx.fillText('▼ 点击 / 按空格 继续', dlgX + dlgW - 25, dlgY + dlgH - 30);
+    }
+  }
+
+  // ===== 像素锁图标 - 对应Python draw_pixel_lock
+  drawPixelLock(x, y, size = 28) {
+    const ctx = this.ctx;
+    const pixel = Math.floor(size / 16);
+    const cLock = 'rgb(200, 180, 120)';
+    const cDark = 'rgb(120, 100, 60)';
+    const cHighlight = 'rgb(230, 210, 150)';
+
+    // 锁身
+    const bodyX = x + pixel * 3;
+    const bodyY = y + pixel * 7;
+    const bodyW = pixel * 10;
+    const bodyH = pixel * 8;
+
+    ctx.fillStyle = cLock;
+    roundRect(ctx, bodyX, bodyY, bodyW, bodyH, pixel);
+    ctx.fill();
+
+    ctx.strokeStyle = cDark;
+    ctx.lineWidth = pixel;
+    roundRect(ctx, bodyX, bodyY, bodyW, bodyH, pixel);
+    ctx.stroke();
+
+    // 锁芯
+    const keyholeCx = bodyX + bodyW / 2;
+    const keyholeCy = bodyY + bodyH / 2;
+    ctx.fillStyle = cDark;
+    ctx.beginPath();
+    ctx.arc(keyholeCx, keyholeCy - pixel, pixel, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(keyholeCx - pixel, keyholeCy - pixel, pixel * 2, pixel * 4);
+
+    // 锁梁U形
+    const shackleX = x + pixel * 5;
+    const shackleY = y + pixel * 2;
+    const shackleW = pixel * 6;
+    const shackleH = pixel * 7;
+
+    ctx.fillStyle = cLock;
+    // 顶部横条
+    ctx.fillRect(shackleX, shackleY, shackleW, pixel * 2);
+    // 左竖条
+    ctx.fillRect(shackleX, shackleY, pixel * 2, shackleH);
+    // 右竖条
+    ctx.fillRect(shackleX + shackleW - pixel * 2, shackleY, pixel * 2, shackleH);
+
+    ctx.strokeStyle = cDark;
+    ctx.lineWidth = pixel;
+    // 顶部
+    ctx.strokeRect(shackleX, shackleY, shackleW, pixel * 2);
+    // 左
+    ctx.strokeRect(shackleX, shackleY, pixel * 2, shackleH);
+    // 右
+    ctx.strokeRect(shackleX + shackleW - pixel * 2, shackleY, pixel * 2, shackleH);
+
+    // 高光
+    ctx.fillStyle = cHighlight;
+    ctx.fillRect(bodyX + pixel, bodyY + pixel, pixel * 2, pixel * 2);
+  }
+
+  // ===== 选择面板 - 对应Python draw_choice_panel
+  drawChoice() {
+    const ctx = this.ctx;
+
+    // 先画背景和状态栏
+    this.drawBackground();
+    this.drawStatusBar();
+
+    // 半透明遮罩
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+    // 面板 - 780x480 居中
+    const panelW = 780;
+    const panelH = 480;
+    const panelX = (SCREEN_WIDTH - panelW) / 2;
+    const panelY = (SCREEN_HEIGHT - panelH) / 2;
+
+    ctx.fillStyle = 'rgb(30, 30, 50)';
+    roundRect(ctx, panelX, panelY, panelW, panelH, 16);
+    ctx.fill();
+
+    ctx.strokeStyle = COLOR_ACCENT_RED;
+    ctx.lineWidth = 2;
+    roundRect(ctx, panelX, panelY, panelW, panelH, 16);
+    ctx.stroke();
+
+    // 标题
+    ctx.font = `28px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_ACCENT_RED;
+    ctx.textAlign = 'center';
+    ctx.fillText('【关键抉择】', panelX + panelW / 2, panelY + 15);
+
+    // 分割线
+    ctx.strokeStyle = 'rgb(80, 80, 110)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(panelX + 40, panelY + 55);
+    ctx.lineTo(panelX + panelW - 40, panelY + 55);
+    ctx.stroke();
+
+    // 选项
+    const choices = this.currentChoices;
+    for (let i = 0; i < choices.length; i++) {
+      const choice = choices[i];
+      const cx = panelX + 30;
+      const cy = panelY + 70 + i * 75;
+      const isHover = (i === this.hoverChoice);
+      const optionLocked = this.isChoiceLocked(choice);
+
+      let color, border;
+      if (optionLocked) {
+        color = 'rgb(35, 35, 50)';
+        border = 'rgb(70, 70, 90)';
+      } else if (isHover) {
+        color = COLOR_ACCENT_RED;
+        border = COLOR_ACCENT_RED;
+      } else {
+        color = 'rgb(50, 50, 70)';
+        border = 'rgb(80, 80, 110)';
+      }
+
+      const optW = panelW - 60;
+      const optH = 65;
+
+      ctx.fillStyle = color;
+      roundRect(ctx, cx, cy, optW, optH, 8);
+      ctx.fill();
+
+      ctx.strokeStyle = border;
+      ctx.lineWidth = 2;
+      roundRect(ctx, cx, cy, optW, optH, 8);
+      ctx.stroke();
+
+      // 选项字母
+      ctx.font = `22px "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = COLOR_ACCENT_RED;
+      ctx.textAlign = 'left';
+      ctx.fillText(`${String.fromCharCode(65 + i)}.`, cx + 15, cy + 10);
+
+      // 选项文本
+      ctx.font = `20px "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = COLOR_TEXT_MAIN;
+      ctx.fillText(choice.text, cx + 50, cy + 10);
+
+      // 提示
+      if (choice.hint) {
+        ctx.font = `14px "Microsoft YaHei", sans-serif`;
+        ctx.fillStyle = COLOR_TEXT_SOFT;
+        ctx.fillText(choice.hint, cx + 50, cy + 38);
+      }
+
+      // 锁定图标
+      if (optionLocked) {
+        const lockSize = 32;
+        this.drawPixelLock(cx + optW - lockSize - 15, cy + (optH - lockSize) / 2, lockSize);
+
+        let lockLabel;
+        if (choice.locked) {
+          lockLabel = '需二周目解锁';
+        } else {
+          lockLabel = '仅一周目可选';
+        }
+        ctx.font = `14px "Microsoft YaHei", sans-serif`;
+        ctx.fillStyle = COLOR_ACCENT_PURPLE;
+        const labelW = ctx.measureText(lockLabel).width;
+        ctx.fillText(lockLabel, cx + optW - lockSize - 25 - labelW - 10, cy + 22);
+      }
+    }
+  }
+
+  // ===== 结局界面 - 对应Python draw_ending_screen
+  drawEnding() {
+    const ctx = this.ctx;
+    const ending = this.currentEnding || {};
+
+    const typeColors = {
+      '最佳': [[246, 224, 94], [200, 150, 50]],
+      '好': [[72, 187, 120], [50, 150, 100]],
+      '普通': [[150, 150, 170], [100, 100, 120]],
+      '失败': [[233, 69, 96], [180, 40, 60]],
+      '隐藏': [[159, 122, 234], [120, 80, 180]]
+    };
+
+    const typeCn = ending.type_cn || '普通';
+    const c = typeColors[typeCn] || typeColors['普通'];
+    drawGradientBackground(ctx, c);
+
+    // 标题
+    ctx.font = `36px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_TEXT_MAIN;
+    ctx.textAlign = 'center';
+    ctx.fillText(`【${ending.title || ''}】`, SCREEN_WIDTH / 2, 60);
+
+    // 星级
+    const stars = '★'.repeat(ending.stars || 3);
+    ctx.font = `28px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_ACCENT_GOLD;
+    ctx.fillText(stars, SCREEN_WIDTH / 2, 120);
+
+    // 类型
+    ctx.font = `22px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_ACCENT_GOLD;
+    ctx.fillText(`【${typeCn}结局】`, SCREEN_WIDTH / 2, 170);
+
+    // 最终属性
+    ctx.font = `20px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_TEXT_MAIN;
+    ctx.fillText(
+      `最终属性 — 🔥理想:${this.ideal}  💼现实:${this.reality}  ❤️温情:${this.warmth}`,
+      SCREEN_WIDTH / 2, 220
+    );
+
+    // 描述
+    const desc = ending.description || '';
+    ctx.font = `20px "Microsoft YaHei", sans-serif`;
+    const descLines = wrapText(ctx, desc, SCREEN_WIDTH - 300);
+    for (let i = 0; i < descLines.length; i++) {
+      ctx.fillStyle = COLOR_TEXT_MAIN;
+      ctx.fillText(descLines[i], SCREEN_WIDTH / 2, 270 + i * 30);
+    }
+
+    // 成就
+    if (ending.achievement) {
+      const achName = typeof ending.achievement === 'string' ? ending.achievement : (ending.achievement.name || ending.achievement.id);
+      ctx.font = `28px "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = COLOR_ACCENT_GOLD;
+      ctx.fillText(`🏆 成就解锁：${achName}`, SCREEN_WIDTH / 2, SCREEN_HEIGHT - 300);
+    }
+
+    // 操作提示
+    ctx.font = `16px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_TEXT_SOFT;
+    ctx.fillText('点击返回主菜单 | 按1重新开始 | 按2主菜单 | 按3图鉴', SCREEN_WIDTH / 2, SCREEN_HEIGHT - 200);
+  }
+
+  // ===== 结局图鉴 - 对应Python draw_gallery
+  drawGallery() {
+    const ctx = this.ctx;
+    drawGradientBackground(ctx, [[30, 30, 50], [50, 50, 80]]);
+
+    // 标题
+    ctx.font = `36px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_ACCENT_RED;
+    ctx.textAlign = 'center';
+    ctx.fillText('结局图鉴', SCREEN_WIDTH / 2, 15);
+
+    // 副标题
+    const allEndings = this.getAllEndings();
+    const allAchievements = this.getAllAchievements();
+    ctx.font = `16px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_ACCENT_GOLD;
+    ctx.fillText(
+      `已解锁 ${this.unlockedEndings.length}/${allEndings.length} 个结局 | 已获得 ${this.unlockedAchievements.length}/${allAchievements.length} 个成就`,
+      SCREEN_WIDTH / 2, 55
+    );
+
+    // 结局卡片 - 3列
+    const cols = 3;
+    const cardW = 310;
+    const cardH = 92;
+    const startX = (SCREEN_WIDTH - cardW * cols - 25 * (cols - 1)) / 2;
+    const startY = 85;
+
+    const typeColors = {
+      '最佳': COLOR_ACCENT_GOLD,
+      '好': COLOR_ACCENT_GREEN,
+      '普通': 'rgb(150, 150, 170)',
+      '失败': COLOR_ACCENT_RED,
+      '隐藏': COLOR_ACCENT_PURPLE
+    };
+
+    for (let idx = 0; idx < allEndings.length; idx++) {
+      const ending = allEndings[idx];
+      const row = Math.floor(idx / cols);
+      const col = idx % cols;
+      const x = startX + col * (cardW + 25);
+      const y = startY + row * (cardH + 12);
+      const isUnlocked = this.unlockedEndings.includes(ending.id);
+
+      if (isUnlocked) {
+        const borderColor = typeColors[ending.type_cn] || 'rgb(100, 100, 120)';
+
+        ctx.fillStyle = 'rgb(45, 45, 65)';
+        roundRect(ctx, x, y, cardW, cardH, 10);
+        ctx.fill();
+
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 2;
+        roundRect(ctx, x, y, cardW, cardH, 10);
+        ctx.stroke();
+
+        // 标题
+        ctx.font = `22px "Microsoft YaHei", sans-serif`;
+        ctx.fillStyle = COLOR_TEXT_MAIN;
+        ctx.textAlign = 'left';
+        ctx.fillText(ending.title, x + 12, y + 10);
+
+        // 星级
+        const stars = '★'.repeat(ending.stars || 3);
+        ctx.font = `16px "Microsoft YaHei", sans-serif`;
+        ctx.fillStyle = COLOR_ACCENT_GOLD;
+        ctx.textAlign = 'right';
+        ctx.fillText(stars, x + cardW - 80, y + 12);
+
+        // 类型
+        ctx.font = `14px "Microsoft YaHei", sans-serif`;
+        ctx.fillStyle = borderColor;
+        ctx.textAlign = 'left';
+        ctx.fillText(`【${ending.type_cn}】`, x + 12, y + 38);
+
+        // 描述
+        ctx.font = `14px "Microsoft YaHei", sans-serif`;
+        ctx.fillStyle = COLOR_TEXT_SOFT;
+        const descLines = wrapText(ctx, ending.description || '', cardW - 24);
+        for (let i = 0; i < Math.min(descLines.length, 2); i++) {
+          ctx.fillText(descLines[i], x + 12, y + 58 + i * 16);
+        }
+      } else {
+        ctx.fillStyle = 'rgb(30, 30, 45)';
+        roundRect(ctx, x, y, cardW, cardH, 10);
+        ctx.fill();
+
+        ctx.strokeStyle = 'rgb(60, 60, 80)';
+        ctx.lineWidth = 2;
+        roundRect(ctx, x, y, cardW, cardH, 10);
+        ctx.stroke();
+
+        ctx.font = `28px "Microsoft YaHei", sans-serif`;
+        ctx.fillStyle = 'rgb(80, 80, 110)';
+        ctx.textAlign = 'center';
+        ctx.fillText('?', x + cardW / 2, y + cardH / 2 - 14);
+      }
+    }
+
+    // 提示
+    ctx.font = `16px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_TEXT_SOFT;
+    ctx.textAlign = 'center';
+    ctx.fillText('点击返回 | 按 2 或 ESC 返回主菜单', SCREEN_WIDTH / 2, SCREEN_HEIGHT - 30);
+  }
+
+  getAllEndings() {
+    const endings = [];
+    const scenes = (this.storyData && this.storyData.scenes) || {};
+    for (const sceneId in scenes) {
+      const scene = scenes[sceneId];
+      if (scene.ending) {
+        endings.push(scene.ending);
+      }
+    }
+    return endings;
+  }
+
+  getAllAchievements() {
+    const achievements = [];
+    const scenes = (this.storyData && this.storyData.scenes) || {};
+    for (const sceneId in scenes) {
+      const scene = scenes[sceneId];
+      if (scene.achievement && scene.achievement.id) {
+        achievements.push(scene.achievement.id);
+      }
+    }
+    return achievements;
+  }
+
+  // ===== 存档界面 - 简化版，对应Python概念
+  drawSave() {
+    const ctx = this.ctx;
+    drawGradientBackground(ctx, [[30, 30, 50], [50, 50, 80]]);
+
+    ctx.font = `36px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_ACCENT_ORANGE;
+    ctx.textAlign = 'center';
+    ctx.fillText('存档管理', SCREEN_WIDTH / 2, 20);
+
+    // 存档槽位
+    for (let i = 0; i < 6; i++) {
+      const save = this.saveSlots[i];
+      const y = 80 + i * 80;
+
+      ctx.fillStyle = save ? 'rgb(45, 45, 65)' : 'rgb(30, 30, 45)';
+      roundRect(ctx, SCREEN_WIDTH / 2 - 300, y, 600, 60, 8);
+      ctx.fill();
+
+      ctx.strokeStyle = this.hoverChoice === i ? COLOR_ACCENT_GOLD : 'rgb(80, 80, 110)';
+      ctx.lineWidth = 2;
+      roundRect(ctx, SCREEN_WIDTH / 2 - 300, y, 600, 60, 8);
+      ctx.stroke();
+
+      ctx.font = `22px "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = save ? COLOR_TEXT_MAIN : 'rgb(120, 120, 140)';
+      ctx.textAlign = 'left';
+      const label = i === 0 ? '自动存档' : `槽位 ${i}`;
+      ctx.fillText(label, SCREEN_WIDTH / 2 - 280, y + 15);
+
+      if (save) {
+        ctx.font = `16px "Microsoft YaHei", sans-serif`;
+        ctx.fillStyle = COLOR_TEXT_SOFT;
+        const date = new Date(save.timestamp).toLocaleString();
+        ctx.fillText(date, SCREEN_WIDTH / 2 - 280, y + 40);
+      }
+    }
+
+    ctx.font = `16px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_TEXT_SOFT;
+    ctx.textAlign = 'center';
+    ctx.fillText('点击读取存档 | 按ESC返回', SCREEN_WIDTH / 2, SCREEN_HEIGHT - 40);
+  }
+
+  // ===== 设置界面 - 对应Python draw_settings
+  drawSettings() {
+    const ctx = this.ctx;
+    drawGradientBackground(ctx, [[30, 30, 50], [50, 50, 80]]);
+
+    // 标题
+    ctx.font = `36px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_ACCENT_ORANGE;
+    ctx.textAlign = 'center';
+    ctx.fillText('设置', SCREEN_WIDTH / 2, 40);
+
+    // 面板 - 600x380
+    const panelW = 600;
+    const panelH = 380;
+    const panelX = (SCREEN_WIDTH - panelW) / 2;
+    const panelY = 130;
+
+    ctx.fillStyle = 'rgb(30, 30, 50)';
+    roundRect(ctx, panelX, panelY, panelW, panelH, 16);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgb(80, 80, 110)';
+    ctx.lineWidth = 2;
+    roundRect(ctx, panelX, panelY, panelW, panelH, 16);
+    ctx.stroke();
+
+    // 音量设置标签
+    ctx.font = `28px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_TEXT_MAIN;
+    ctx.textAlign = 'left';
+    ctx.fillText('游戏音量', panelX + 40, panelY + 40);
+
+    // 滑条轨道
+    const sliderX = panelX + 40;
+    const sliderY = panelY + 100;
+    const sliderW = panelW - 80;
+    const sliderH = 8;
+
+    ctx.fillStyle = 'rgb(60, 60, 80)';
+    roundRect(ctx, sliderX, sliderY, sliderW, sliderH, 4);
+    ctx.fill();
+
+    // 当前音量填充
+    const fillW = Math.floor(sliderW * this.musicVolume);
+    ctx.fillStyle = COLOR_ACCENT_ORANGE;
+    roundRect(ctx, sliderX, sliderY, fillW, sliderH, 4);
+    ctx.fill();
+
+    // 滑块 - 圆形
+    const handleR = 14;
+    const handleX = sliderX + fillW;
+    const handleY = sliderY + sliderH / 2;
+
+    ctx.fillStyle = 'rgb(255, 200, 100)';
+    ctx.beginPath();
+    ctx.arc(handleX, handleY, handleR, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = COLOR_ACCENT_ORANGE;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(handleX, handleY, handleR, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // 音量百分比
+    const volPct = Math.floor(this.musicVolume * 100);
+    ctx.font = `20px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_ACCENT_GOLD;
+    ctx.textAlign = 'right';
+    ctx.fillText(`${volPct}%`, sliderX + sliderW, sliderY - 32);
+
+    // 分割线
+    ctx.strokeStyle = 'rgb(70, 70, 100)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(panelX + 40, panelY + 160);
+    ctx.lineTo(panelX + panelW - 40, panelY + 160);
+    ctx.stroke();
+
+    // 重置游戏数据
+    ctx.font = `28px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_TEXT_MAIN;
+    ctx.textAlign = 'left';
+    ctx.fillText('重置游戏数据', panelX + 40, panelY + 190);
+
+    ctx.font = `16px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_TEXT_SOFT;
+    ctx.fillText('删除所有存档、通关记录和成就，重新开始', panelX + 40, panelY + 230);
+
+    // 重置按钮
+    const resetBtnW = 200;
+    const resetBtnH = 50;
+    const resetBtnX = panelX + (panelW - resetBtnW) / 2;
+    const resetBtnY = panelY + 280;
+    const resetHover = this.settingsResetHover;
+
+    ctx.fillStyle = resetHover ? 'rgb(80, 30, 40)' : 'rgb(60, 30, 35)';
+    roundRect(ctx, resetBtnX, resetBtnY, resetBtnW, resetBtnH, 8);
+    ctx.fill();
+
+    ctx.strokeStyle = resetHover ? COLOR_ACCENT_RED : 'rgb(120, 60, 70)';
+    ctx.lineWidth = 2;
+    roundRect(ctx, resetBtnX, resetBtnY, resetBtnW, resetBtnH, 8);
+    ctx.stroke();
+
+    ctx.font = `20px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_ACCENT_RED;
+    ctx.textAlign = 'center';
+    ctx.fillText('重置游戏', resetBtnX + resetBtnW / 2, resetBtnY + 12);
+
+    // 返回主菜单按钮
+    const saveBtnW = 200;
+    const saveBtnH = 50;
+    const saveBtnX = panelX + (panelW - saveBtnW) / 2;
+    const saveBtnY = panelY + 340;
+    const saveHover = this.settingsSaveHover;
+
+    ctx.fillStyle = saveHover ? 'rgb(40, 70, 50)' : 'rgb(35, 55, 40)';
+    roundRect(ctx, saveBtnX, saveBtnY, saveBtnW, saveBtnH, 8);
+    ctx.fill();
+
+    ctx.strokeStyle = saveHover ? COLOR_ACCENT_GREEN : 'rgb(70, 120, 80)';
+    ctx.lineWidth = 2;
+    roundRect(ctx, saveBtnX, saveBtnY, saveBtnW, saveBtnH, 8);
+    ctx.stroke();
+
+    ctx.font = `20px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = COLOR_ACCENT_GREEN;
+    ctx.textAlign = 'center';
+    ctx.fillText('返回主菜单', saveBtnX + saveBtnW / 2, saveBtnY + 12);
+
+    // 确认重置对话框
+    if (this.showResetConfirm) {
+      // 半透明遮罩
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+
+      const confW = 500;
+      const confH = 220;
+      const confX = (SCREEN_WIDTH - confW) / 2;
+      const confY = (SCREEN_HEIGHT - confH) / 2;
+
+      ctx.fillStyle = 'rgb(30, 30, 50)';
+      roundRect(ctx, confX, confY, confW, confH, 12);
+      ctx.fill();
+
+      ctx.strokeStyle = COLOR_ACCENT_RED;
+      ctx.lineWidth = 2;
+      roundRect(ctx, confX, confY, confW, confH, 12);
+      ctx.stroke();
+
+      ctx.font = `28px "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = COLOR_ACCENT_RED;
+      ctx.textAlign = 'center';
+      ctx.fillText('确认重置？', confX + confW / 2, confY + 30);
+
+      ctx.font = `20px "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = COLOR_TEXT_MAIN;
+      ctx.fillText('将删除所有存档、通关记录和成就', confX + confW / 2, confY + 85);
+      ctx.fillStyle = COLOR_ACCENT_RED;
+      ctx.fillText('此操作不可撤销！', confX + confW / 2, confY + 120);
+
+      // 确认按钮
+      const btnW = 120;
+      const btnH = 45;
+      const btnY = confY + 160;
+      const yesX = confX + confW / 2 - btnW - 20;
+      const noX = confX + confW / 2 + 20;
+
+      const yesHover = this.resetConfirmYesHover;
+      const noHover = this.resetConfirmNoHover;
+
+      ctx.fillStyle = yesHover ? 'rgb(100, 30, 40)' : 'rgb(80, 30, 40)';
+      roundRect(ctx, yesX, btnY, btnW, btnH, 8);
+      ctx.fill();
+      ctx.strokeStyle = COLOR_ACCENT_RED;
+      ctx.lineWidth = 2;
+      roundRect(ctx, yesX, btnY, btnW, btnH, 8);
+      ctx.stroke();
+      ctx.font = `20px "Microsoft YaHei", sans-serif`;
+      ctx.fillStyle = COLOR_ACCENT_RED;
+      ctx.textAlign = 'center';
+      ctx.fillText('确认重置', yesX + btnW / 2, btnY + 10);
+
+      ctx.fillStyle = noHover ? 'rgb(60, 60, 80)' : 'rgb(50, 50, 70)';
+      roundRect(ctx, noX, btnY, btnW, btnH, 8);
+      ctx.fill();
+      ctx.strokeStyle = COLOR_TEXT_SOFT;
+      ctx.lineWidth = 2;
+      roundRect(ctx, noX, btnY, btnW, btnH, 8);
+      ctx.stroke();
+      ctx.fillStyle = COLOR_TEXT_SOFT;
+      ctx.fillText('取消', noX + btnW / 2, btnY + 10);
+    }
+  }
+
+  // ===== 成就弹窗 - 对应Python draw_achievement_popup
+  drawAchievementPopup() {
+    if (!this.achievementPopup || this.achievementTimer <= 0) return;
+
+    const ctx = this.ctx;
+    const alpha = Math.min(255, this.achievementTimer * 3);
+    const popupH = 60;
+    const popupY = 60;
+
+    ctx.fillStyle = `rgba(50, 50, 80, ${Math.min(0.8, alpha / 255)})`;
+    ctx.fillRect(0, popupY, SCREEN_WIDTH, popupH);
+
+    ctx.font = `28px "Microsoft YaHei", sans-serif`;
+    ctx.fillStyle = `rgba(246, 224, 94, ${alpha / 255})`;
+    ctx.textAlign = 'center';
+    ctx.fillText(`🏆 成就解锁：${this.achievementPopup}`, SCREEN_WIDTH / 2, popupY + 15);
+  }
+
+  // ===== 事件绑定 =====
+  bindEvents() {
+    // 鼠标事件
+    this.canvas.addEventListener('click', (e) => {
+      this.handleClick(e.clientX, e.clientY);
+    });
+
+    this.canvas.addEventListener('mousemove', (e) => {
+      this.handleMouseMove(e.clientX, e.clientY);
+    });
+
+    this.canvas.addEventListener('mousedown', (e) => {
+      if (e.button === 0) {
+        this.handleMouseDown(e.clientX, e.clientY);
+      }
+    });
+
+    this.canvas.addEventListener('mouseup', () => {
+      this.handleMouseUp();
+    });
+
+    // 键盘事件
+    document.addEventListener('keydown', (e) => {
+      this.handleKey(e.key);
+    });
+
+    // 首次点击激活音乐
+    const firstInteraction = () => {
+      if (this.state === STATE.TITLE) {
+        this.playMusic('menu');
+      }
+      document.removeEventListener('click', firstInteraction);
+      document.removeEventListener('keydown', firstInteraction);
+    };
+    document.addEventListener('click', firstInteraction);
+    document.addEventListener('keydown', firstInteraction);
+  }
+
+  getCanvasCoords(clientX, clientY) {
+    const rect = this.canvas.getBoundingClientRect();
+    const scaleX = this.canvas.width / rect.width;
+    const scaleY = this.canvas.height / rect.height;
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
+    };
+  }
+
+  handleClick(clientX, clientY) {
+    const { x, y } = this.getCanvasCoords(clientX, clientY);
+
+    if (this.showResetConfirm) {
+      // 确认对话框
+      const confW = 500;
+      const confH = 220;
+      const confX = (SCREEN_WIDTH - confW) / 2;
+      const confY = (SCREEN_HEIGHT - confH) / 2;
+      const btnW = 120;
+      const btnH = 45;
+      const btnY = confY + 160;
+      const yesX = confX + confW / 2 - btnW - 20;
+      const noX = confX + confW / 2 + 20;
+
+      if (y >= btnY && y <= btnY + btnH) {
+        if (x >= yesX && x <= yesX + btnW) {
+          this.resetAllProgress();
+          this.showResetConfirm = false;
+          return;
+        }
+        if (x >= noX && x <= noX + btnW) {
+          this.showResetConfirm = false;
+          return;
+        }
+      }
+      return;
+    }
+
+    switch (this.state) {
+      case STATE.TITLE:
+        this.handleTitleClick(x, y);
+        break;
+      case STATE.DISCLAIMER:
+        this.state = STATE.TITLE;
+        this.playMusic('menu');
+        break;
+      case STATE.DIALOG:
+        this.advanceDialog();
+        break;
+      case STATE.CHOICE:
+        this.handleChoiceClick(x, y);
+        break;
+      case STATE.ENDING:
+        this.state = STATE.TITLE;
+        this.playMusic('menu');
+        break;
+      case STATE.GALLERY:
+        this.state = STATE.TITLE;
+        break;
+      case STATE.SAVE:
+        this.handleSaveClick(x, y);
+        break;
+      case STATE.SETTINGS:
+        this.handleSettingsClick(x, y);
+        break;
+    }
+  }
+
+  handleMouseDown(clientX, clientY) {
+    const { x, y } = this.getCanvasCoords(clientX, clientY);
+
+    if (this.state === STATE.SETTINGS && !this.showResetConfirm) {
+      // 检查是否点在音量滑条上
+      const panelW = 600;
+      const panelX = (SCREEN_WIDTH - panelW) / 2;
+      const sliderX = panelX + 40;
+      const sliderY = 130 + 100;
+      const sliderW = panelW - 80;
+
+      if (y >= sliderY - 14 && y <= sliderY + 22 && x >= sliderX && x <= sliderX + sliderW) {
+        this.draggingVolume = true;
+      }
+    }
+  }
+
+  handleMouseUp() {
+    if (this.draggingVolume) {
+      this.draggingVolume = false;
+      this.saveVolume();
+    }
+  }
+
+  handleMouseMove(clientX, clientY) {
+    const { x, y } = this.getCanvasCoords(clientX, clientY);
+    this.mouseX = x;
+    this.mouseY = y;
+
+    // 重置悬停状态
+    this.hoverChoice = -1;
+    this.settingsResetHover = false;
+    this.settingsSaveHover = false;
+    this.resetConfirmYesHover = false;
+    this.resetConfirmNoHover = false;
+
+    if (this.showResetConfirm) {
+      const confW = 500;
+      const confH = 220;
+      const confX = (SCREEN_WIDTH - confW) / 2;
+      const confY = (SCREEN_HEIGHT - confH) / 2;
+      const btnW = 120;
+      const btnH = 45;
+      const btnY = confY + 160;
+      const yesX = confX + confW / 2 - btnW - 20;
+      const noX = confX + confW / 2 + 20;
+
+      if (y >= btnY && y <= btnY + btnH) {
+        if (x >= yesX && x <= yesX + btnW) this.resetConfirmYesHover = true;
+        if (x >= noX && x <= noX + btnW) this.resetConfirmNoHover = true;
+      }
+      return;
+    }
+
+    switch (this.state) {
+      case STATE.TITLE:
+        this.updateTitleHover(y);
+        break;
+      case STATE.CHOICE:
+        this.updateChoiceHover(x, y);
+        break;
+      case STATE.SAVE:
+        this.updateSaveHover(y);
+        break;
+      case STATE.SETTINGS:
+        this.updateSettingsHover(x, y);
+        break;
+    }
+  }
+
+  handleTitleClick(x, y) {
+    let menuY = 330;
+    for (let i = 0; i < 5; i++) {
+      if (y >= menuY && y <= menuY + 50) {
+        const rectX = SCREEN_WIDTH / 2 - 150;
+        if (x >= rectX && x <= rectX + 300) {
+          this.selectTitleOption(i);
+          return;
+        }
+      }
+      menuY += 65;
+    }
+  }
+
+  selectTitleOption(idx) {
+    switch (idx) {
+      case 0: // 开始游戏
+        this.startStory();
+        break;
+      case 1: // 继续游戏
+        if (this.saveSlots[0]) {
+          this.loadGame(0);
+        }
+        break;
+      case 2: // 结局图鉴
+        this.state = STATE.GALLERY;
+        break;
+      case 3: // 设置
+        this.state = STATE.SETTINGS;
+        this.settingsResetHover = false;
+        this.settingsSaveHover = false;
+        this.showResetConfirm = false;
+        break;
+      case 4: // 退出
+        // Web版不退出，只提示
+        alert('网页版无法退出请关闭页面');
+        break;
+    }
+  }
+
+  updateTitleHover(y) {
+    let menuY = 330;
+    for (let i = 0; i < 5; i++) {
+      if (y >= menuY && y <= menuY + 50) {
+        this.hoverChoice = i;
+        break;
+      }
+      menuY += 65;
+    }
+  }
+
+  handleChoiceClick(x, y) {
+    const panelW = 780;
+    const panelH = 480;
+    const panelX = (SCREEN_WIDTH - panelW) / 2;
+    const panelY = (SCREEN_HEIGHT - panelH) / 2;
+
+    for (let i = 0; i < this.currentChoices.length; i++) {
+      const cy = panelY + 70 + i * 75;
+      if (y >= cy && y <= cy + 65 && x >= panelX + 30 && x <= panelX + panelW - 30) {
+        this.chooseOption(i);
+        return;
+      }
+    }
+  }
+
+  updateChoiceHover(x, y) {
+    const panelW = 780;
+    const panelH = 480;
+    const panelX = (SCREEN_WIDTH - panelW) / 2;
+    const panelY = (SCREEN_HEIGHT - panelH) / 2;
+
+    for (let i = 0; i < this.currentChoices.length; i++) {
+      const cy = panelY + 70 + i * 75;
+      if (y >= cy && y <= cy + 65 && x >= panelX + 30 && x <= panelX + panelW - 30) {
+        if (!this.isChoiceLocked(this.currentChoices[i])) {
+          this.hoverChoice = i;
+        }
+        return;
+      }
+    }
+  }
+
+  handleSaveClick(x, y) {
+    for (let i = 0; i < 6; i++) {
+      const slotY = 120 + i * 80;
+      if (y >= slotY && y <= slotY + 60 && x >= SCREEN_WIDTH / 2 - 300 && x <= SCREEN_WIDTH / 2 + 300) {
+        if (this.saveSlots[i]) {
+          this.loadGame(i);
+        } else {
+          this.saveGame(i);
+        }
+        return;
+      }
+    }
+  }
+
+  updateSaveHover(y) {
+    for (let i = 0; i < 6; i++) {
+      const slotY = 120 + i * 80;
+      if (y >= slotY && y <= slotY + 60) {
+        this.hoverChoice = i;
+        return;
+      }
+    }
+  }
+
+  handleSettingsClick(x, y) {
+    const panelW = 600;
+    const panelX = (SCREEN_WIDTH - panelW) / 2;
+    const panelY = 130;
+
+    // 重置按钮
+    const resetBtnW = 200;
+    const resetBtnH = 50;
+    const resetBtnX = panelX + (panelW - resetBtnW) / 2;
+    const resetBtnY = panelY + 280;
+
+    if (y >= resetBtnY && y <= resetBtnY + resetBtnH && x >= resetBtnX && x <= resetBtnX + resetBtnW) {
+      this.showResetConfirm = true;
+      return;
+    }
+
+    // 返回主菜单按钮
+    const saveBtnW = 200;
+    const saveBtnH = 50;
+    const saveBtnX = panelX + (panelW - saveBtnW) / 2;
+    const saveBtnY = panelY + 340;
+
+    if (y >= saveBtnY && y <= saveBtnY + saveBtnH && x >= saveBtnX && x <= saveBtnX + saveBtnW) {
+      this.saveVolume();
+      this.state = STATE.TITLE;
+      return;
+    }
+  }
+
+  updateSettingsHover(x, y) {
+    const panelW = 600;
+    const panelX = (SCREEN_WIDTH - panelW) / 2;
+    const panelY = 130;
+
+    // 重置按钮
+    const resetBtnW = 200;
+    const resetBtnH = 50;
+    const resetBtnX = panelX + (panelW - resetBtnW) / 2;
+    const resetBtnY = panelY + 280;
+
+    if (y >= resetBtnY && y <= resetBtnY + resetBtnH && x >= resetBtnX && x <= resetBtnX + resetBtnW) {
+      this.settingsResetHover = true;
+    }
+
+    // 返回主菜单按钮
+    const saveBtnW = 200;
+    const saveBtnH = 50;
+    const saveBtnX = panelX + (panelW - saveBtnW) / 2;
+    const saveBtnY = panelY + 340;
+
+    if (y >= saveBtnY && y <= saveBtnY + saveBtnH && x >= saveBtnX && x <= saveBtnX + saveBtnW) {
+      this.settingsSaveHover = true;
+    }
+  }
+
+  handleKey(key) {
+    if (this.showResetConfirm) {
+      if (key === 'Escape' || key === '2') {
+        this.showResetConfirm = false;
+      }
+      return;
+    }
+
+    switch (this.state) {
+      case STATE.DISCLAIMER:
+        if (key === ' ' || key === 'Enter' || key === 'Escape') {
+          this.state = STATE.TITLE;
+        }
+        break;
+
+      case STATE.TITLE:
+        if (key === '1') this.startStory();
+        else if (key === '2') {
+          if (this.saveSlots[0]) this.loadGame(0);
+        }
+        else if (key === '3') this.state = STATE.GALLERY;
+        else if (key === '4') {
+          this.state = STATE.SETTINGS;
+          this.settingsResetHover = false;
+          this.settingsSaveHover = false;
+          this.showResetConfirm = false;
+        }
+        else if (key === '5') {
+          // 退出游戏 - web版不做
+        }
+        break;
+
+      case STATE.SETTINGS:
+        if (key === 'Escape' || key === '2') {
+          this.saveVolume();
+          this.state = STATE.TITLE;
+        }
+        break;
+
+      case STATE.DIALOG:
+        if (key === ' ' || key === 'Enter') {
+          this.advanceDialog();
+        } else if (key === 'Escape') {
+          this.state = STATE.TITLE;
+          this.playMusic('menu');
+        }
+        break;
+
+      case STATE.CHOICE:
+        if (key >= '1' && key <= '9') {
+          const idx = parseInt(key) - 1;
+          if (idx < this.currentChoices.length) this.chooseOption(idx);
+        }
+        else if (key === 'ArrowUp') {
+          let newIdx = this.hoverChoice - 1;
+          while (newIdx >= 0) {
+            if (!this.isChoiceLocked(this.currentChoices[newIdx])) {
+              this.hoverChoice = newIdx;
+              break;
+            }
+            newIdx--;
+          }
+        }
+        else if (key === 'ArrowDown') {
+          let newIdx = this.hoverChoice + 1;
+          while (newIdx < this.currentChoices.length) {
+            if (!this.isChoiceLocked(this.currentChoices[newIdx])) {
+              this.hoverChoice = newIdx;
+              break;
+            }
+            newIdx++;
+          }
+        }
+        else if (key === ' ' || key === 'Enter') {
+          this.chooseOption(this.hoverChoice);
+        }
+        break;
+
+      case STATE.ENDING:
+        if (key === '1') this.startStory();
+        else if (key === '2') { this.state = STATE.TITLE; this.playMusic('menu'); }
+        else if (key === '3') this.state = STATE.GALLERY;
+        break;
+
+      case STATE.GALLERY:
+        if (key === 'Escape' || key === '2') this.state = STATE.TITLE;
+        break;
+
+      case STATE.SAVE:
+        if (key === 'Escape') this.state = STATE.TITLE;
+        break;
+    }
+  }
+
+  startStory() {
+    this.playMusic('story');
+    this.ideal = this.initialStats.ideal || 20;
+    this.reality = this.initialStats.reality || 20;
+    this.warmth = this.initialStats.warmth || 20;
+    this.currentSceneId = 'intro';
+    this.currentLineIndex = 0;
+    this.state = STATE.DIALOG;
+    this.loadScene('intro');
+    this.autoSave();
+  }
+}
+
+// ===== 启动游戏 =====
+const game = new Game();
+
+</script>
+</body>
+</html>

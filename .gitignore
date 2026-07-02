@@ -1,0 +1,17 @@
+.venv/
+.idea/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+build/
+saves/
+settings.json
+.DS_Store
+Thumbs.db
+*.log
+
+# 大文件
+dist/
+*.exe
+*.mp3

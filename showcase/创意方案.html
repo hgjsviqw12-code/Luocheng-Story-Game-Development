@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>罗诚的故事 - 创意方案</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=ZCOOL+KuaiLe&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-dark: #0f0f1a;
+    --bg-mid: #1a1a2e;
+    --bg-card: #1e1e36;
+    --accent-red: #e94560;
+    --accent-gold: #f4d03f;
+    --accent-blue: #5392f9;
+    --accent-purple: #9b59b6;
+    --accent-green: #2ecc71;
+    --accent-orange: #e67e22;
+    --text-main: #f0f0f5;
+    --text-soft: #b0b0c8;
+    --text-dim: #707090;
+    --border: #3a3a5c;
+  }
+
+  body {
+    background: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Noto Serif SC', serif;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* 像素网格背景 */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    padding: 60px 24px;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at 50% 30%, rgba(233,69,96,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(83,146,249,0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(244,208,63,0.08) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .pixel-line {
+    width: 60px;
+    height: 4px;
+    background: var(--accent-red);
+    margin: 0 auto 32px;
+    position: relative;
+  }
+  .pixel-line::before, .pixel-line::after {
+    content: '';
+    position: absolute;
+    width: 4px; height: 4px;
+    background: var(--accent-red);
+    top: 0;
+  }
+  .pixel-line::before { left: -12px; }
+  .pixel-line::after { right: -12px; }
+
+  .hero-badge {
+    display: inline-block;
+    font-family: 'ZCOOL KuaiLe', cursive;
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: var(--accent-gold);
+    border: 1px solid var(--accent-gold);
+    padding: 6px 20px;
+    margin-bottom: 32px;
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    font-family: 'ZCOOL KuaiLe', cursive;
+    font-size: 72px;
+    font-weight: 900;
+    color: var(--text-main);
+    text-shadow: 0 0 40px rgba(233,69,96,0.3), 4px 4px 0 var(--accent-red);
+    margin-bottom: 16px;
+    letter-spacing: 8px;
+  }
+
+  .hero-subtitle {
+    font-size: 22px;
+    color: var(--accent-gold);
+    margin-bottom: 40px;
+    letter-spacing: 6px;
+  }
+
+  .hero-desc {
+    font-size: 16px;
+    color: var(--text-soft);
+    max-width: 600px;
+    line-height: 2;
+    margin-bottom: 48px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .stat-item {
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'ZCOOL KuaiLe', cursive;
+    font-size: 36px;
+    color: var(--accent-red);
+    display: block;
+  }
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--text-dim);
+    font-size: 13px;
+    letter-spacing: 2px;
+    animation: bounce 2s infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(8px); }
+  }
+
+  /* ===== SECTION ===== */
+  .section {
+    padding: 80px 0;
+    position: relative;
+  }
+
+  .section-header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+
+  .section-num {
+    font-family: 'ZCOOL KuaiLe', cursive;
+    font-size: 14px;
+    color: var(--accent-red);
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 16px;
+    letter-spacing: 4px;
+  }
+
+  .section-desc {
+    font-size: 15px;
+    color: var(--text-soft);
+    max-width: 560px;
+    margin: 0 auto;
+  }
+
+  /* ===== CARDS ===== */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 32px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-red);
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-red), var(--accent-gold));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .card:hover::before { opacity: 1; }
+
+  .card-icon {
+    font-size: 36px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--text-main);
+  }
+
+  .card-text {
+    font-size: 14px;
+    color: var(--text-soft);
+    line-height: 1.8;
+  }
+
+  /* ===== FEATURE LIST ===== */
+  .feature-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: start;
+    margin-bottom: 48px;
+  }
+
+  @media (max-width: 720px) {
+    .feature-block { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 42px; }
+  }
+
+  .feature-content h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--accent-gold);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .feature-content h3 .dot {
+    width: 8px; height: 8px;
+    background: var(--accent-red);
+    display: inline-block;
+  }
+
+  .feature-content p {
+    font-size: 15px;
+    color: var(--text-soft);
+    line-height: 2;
+    margin-bottom: 12px;
+  }
+
+  .feature-tag {
+    display: inline-block;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-right: 8px;
+    margin-top: 8px;
+  }
+  .tag-red { background: rgba(233,69,96,0.15); color: var(--accent-red); border: 1px solid rgba(233,69,96,0.3); }
+  .tag-blue { background: rgba(83,146,249,0.15); color: var(--accent-blue); border: 1px solid rgba(83,146,249,0.3); }
+  .tag-gold { background: rgba(244,208,63,0.15); color: var(--accent-gold); border: 1px solid rgba(244,208,63,0.3); }
+  .tag-purple { background: rgba(155,89,182,0.15); color: var(--accent-purple); border: 1px solid rgba(155,89,182,0.3); }
+  .tag-green { background: rgba(46,204,113,0.15); color: var(--accent-green); border: 1px solid rgba(46,204,113,0.3); }
+
+  /* ===== BRANCH TREE ===== */
+  .branch-visual {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .branch-center {
+    display: inline-block;
+    background: var(--accent-red);
+    color: white;
+    font-family: 'ZCOOL KuaiLe', cursive;
+    font-size: 18px;
+    padding: 12px 32px;
+    border-radius: 8px;
+    margin-bottom: 32px;
+    position: relative;
+  }
+
+  .branch-lines {
+    position: relative;
+    height: 2px;
+    background: var(--border);
+    margin-bottom: 32px;
+  }
+
+  .branch-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .branch-item {
+    background: var(--bg-mid);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    min-width: 140px;
+    text-align: center;
+    transition: all 0.3s;
+  }
+  .branch-item:hover {
+    border-color: var(--accent-gold);
+    transform: scale(1.05);
+  }
+  .branch-item.best { border-color: var(--accent-gold); }
+  .branch-item.good { border-color: var(--accent-green); }
+  .branch-item.normal { border-color: var(--accent-blue); }
+  .branch-item.bad { border-color: var(--accent-red); }
+  .branch-item.hidden { border-color: var(--accent-purple); }
+
+  .branch-label {
+    font-family: 'ZCOOL KuaiLe', cursive;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+  .branch-type {
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* ===== STATS BAR ===== */
+  .stats-visual {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 40px 0;
+  }
+
+  .stat-bar-group {
+    text-align: center;
+    min-width: 160px;
+  }
+  .stat-bar-label {
+    font-size: 14px;
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+  .stat-bar-track {
+    width: 160px;
+    height: 12px;
+    background: var(--bg-mid);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .stat-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 1s ease;
+  }
+  .fill-ideal { background: linear-gradient(90deg, #e94560, #ff6b81); }
+  .fill-reality { background: linear-gradient(90deg, #5392f9, #74b9ff); }
+  .fill-warmth { background: linear-gradient(90deg, #e67e22, #f9ca24); }
+
+  /* ===== TIMELINE ===== */
+  .timeline {
+    position: relative;
+    max-width: 700px;
+    margin: 0 auto;
+    padding-left: 40px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 12px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, var(--accent-red), var(--accent-gold), var(--accent-blue), var(--accent-green));
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 36px;
+    padding-left: 24px;
+  }
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -32px; top: 6px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent-red);
+    border: 2px solid var(--bg-dark);
+  }
+  .timeline-item:nth-child(2)::before { background: var(--accent-orange); }
+  .timeline-item:nth-child(3)::before { background: var(--accent-blue); }
+  .timeline-item:nth-child(4)::before { background: var(--accent-purple); }
+  .timeline-item:nth-child(5)::before { background: var(--accent-gold); }
+  .timeline-item:nth-child(6)::before { background: var(--accent-green); }
+
+  .timeline-era {
+    font-family: 'ZCOOL KuaiLe', cursive;
+    font-size: 18px;
+    color: var(--accent-gold);
+    margin-bottom: 8px;
+  }
+  .timeline-desc {
+    font-size: 14px;
+    color: var(--text-soft);
+    line-height: 1.8;
+  }
+
+  /* ===== CTA ===== */
+  .cta-section {
+    text-align: center;
+    padding: 80px 24px;
+    background: linear-gradient(180deg, transparent, rgba(233,69,96,0.05));
+  }
+  .cta-title {
+    font-family: 'ZCOOL KuaiLe', cursive;
+    font-size: 36px;
+    margin-bottom: 16px;
+    color: var(--text-main);
+  }
+  .cta-text {
+    font-size: 16px;
+    color: var(--text-soft);
+    margin-bottom: 32px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 2;
+  }
+  .cta-btn {
+    display: inline-block;
+    font-family: 'ZCOOL KuaiLe', cursive;
+    font-size: 18px;
+    color: white;
+    background: linear-gradient(135deg, var(--accent-red), #c0392b);
+    padding: 14px 48px;
+    border-radius: 8px;
+    text-decoration: none;
+    letter-spacing: 4px;
+    box-shadow: 0 4px 20px rgba(233,69,96,0.3);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(233,69,96,0.5);
+  }
+
+  /* ===== DIVIDER ===== */
+  .divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .divider-line {
+    width: 80px;
+    height: 1px;
+    background: var(--border);
+  }
+  .divider-diamond {
+    width: 8px; height: 8px;
+    background: var(--accent-red);
+    transform: rotate(45deg);
+  }
+
+  /* ===== PAIN POINT ===== */
+  .pain-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+  }
+  .pain-card {
+    background: var(--bg-card);
+    border-left: 3px solid var(--accent-red);
+    padding: 24px;
+    border-radius: 0 8px 8px 0;
+  }
+  .pain-card.solve {
+    border-left-color: var(--accent-green);
+  }
+  .pain-title {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+  .pain-desc {
+    font-size: 13px;
+    color: var(--text-soft);
+    line-height: 1.8;
+  }
+
+  /* ===== TECH TAGS ===== */
+  .tech-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 32px;
+  }
+  .tech-tag {
+    font-size: 13px;
+    padding: 8px 20px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-soft);
+    background: var(--bg-card);
+    transition: all 0.3s;
+  }
+  .tech-tag:hover {
+    border-color: var(--accent-gold);
+    color: var(--accent-gold);
+  }
+
+  /* footer */
+  .footer {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: 2px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* pixel decorations */
+  .pixel-deco {
+    position: absolute;
+    width: 8px; height: 8px;
+    opacity: 0.3;
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-badge">TRAE AI 创造力大赛 · 生活娱乐赛道</div>
+  <div class="pixel-line"></div>
+  <h1>罗诚的故事</h1>
+  <p class="hero-subtitle">从负债数亿到涅槃重生</p>
+  <p class="hero-desc">
+    一款基于真实人物改编的多分支剧情选择游戏。<br>
+    你将扮演主角罗诚，在人生的十字路口做出选择，<br>
+    体验从创业巅峰到负债谷底，再到涅槃重生的完整历程。<br>
+    13种结局，你的选择，决定他的命运。
+  </p>
+  <div class="hero-stats">
+    <div class="stat-item">
+      <span class="stat-num">87+</span>
+      <span class="stat-label">剧情场景</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">13</span>
+      <span class="stat-label">种结局</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">3</span>
+      <span class="stat-label">维属性系统</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">17</span>
+      <span class="stat-label">个成就</span>
+    </div>
+  </div>
+  <div class="scroll-hint">▼ 向下滚动查看完整方案</div>
+</section>
+
+<!-- ===== 创意简介 ===== -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-num">PART 01</div>
+      <h2 class="section-title">创意简介</h2>
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-diamond"></div>
+        <div class="divider-line"></div>
+      </div>
+    </div>
+
+    <div class="feature-block">
+      <div class="feature-content">
+        <h3><span class="dot"></span>想解决什么问题</h3>
+        <p>当前市面上的剧情游戏大多是虚构故事，缺乏真实情感的锚点。玩家在通关后往往觉得"好看但不真实"，难以产生深层共鸣。与此同时，许多人面对人生困境时感到迷茫，渴望从真实的逆袭故事中获得力量，但现有的内容形式（传记、纪录片）缺乏互动感和代入感。</p>
+        <div>
+          <span class="feature-tag tag-red">情感共鸣缺失</span>
+          <span class="feature-tag tag-blue">代入感不足</span>
+          <span class="feature-tag tag-gold">励志题材稀缺</span>
+        </div>
+      </div>
+      <div class="feature-content">
+        <h3><span class="dot"></span>为什么想到做这个</h3>
+        <p>灵感来源于罗永浩从负债6亿到"真还传"完成、再到细红线科技创业的真实历程。这个故事本身就具备戏剧级别的大起大落：从英语老师到科技创业者，从鸟巢发布会的辉煌到负债6亿的谷底，从直播还债到东山再起——这本身就是一部最好的游戏剧本。将其改编为互动剧情游戏，让玩家亲自做出那些关键抉择，比看传记更有冲击力。</p>
+        <div>
+          <span class="feature-tag tag-purple">真实IP改编</span>
+          <span class="feature-tag tag-red">戏剧张力极强</span>
+          <span class="feature-tag tag-green">社会话题度高</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-block">
+      <div class="feature-content">
+        <h3><span class="dot"></span>大概是什么产品</h3>
+        <p>一款基于 Python + Pygame 开发的多分支剧情选择游戏，首发支持 PC（Windows/Mac），后续适配手机端。采用像素+动漫叙事风格，包含数值系统（理想值/现实值/温情值）、成就系统、二周目解锁机制、存档读档功能。玩家通过鼠标点击或键盘操作推进剧情，在关键节点做出选择，导向不同的人生结局。</p>
+        <div>
+          <span class="feature-tag tag-blue">PC + 手机双端</span>
+          <span class="feature-tag tag-gold">像素动漫风格</span>
+          <span class="feature-tag tag-green">多周目重玩</span>
+        </div>
+      </div>
+      <div class="feature-content">
+        <h3><span class="dot"></span>核心玩法</h3>
+        <p>通过文字对话推进剧情，在关键抉择点做出选择。每个选择会影响三项属性值，属性值和选择路径共同决定最终结局。游戏包含6个章节（少年时代→北漂岁月→坚石时代→至暗时刻→重生之路→终章），二周目解锁隐藏D支线，全结局收集需要多次游玩。</p>
+        <div class="stats-visual" style="margin:20px 0 0 0;gap:16px;justify-content:flex-start;">
+          <div class="stat-bar-group">
+            <div class="stat-bar-label" style="color:#e94560;">🔥 理想值</div>
+            <div class="stat-bar-track"><div class="stat-bar-fill fill-ideal" style="width:65%"></div></div>
+          </div>
+          <div class="stat-bar-group">
+            <div class="stat-bar-label" style="color:#5392f9;">💼 现实值</div>
+            <div class="stat-bar-track"><div class="stat-bar-fill fill-reality" style="width:45%"></div></div>
+          </div>
+          <div class="stat-bar-group">
+            <div class="stat-bar-label" style="color:#e67e22;">❤️ 温情值</div>
+            <div class="stat-bar-track"><div class="stat-bar-fill fill-warmth" style="width:30%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 目标用户 ===== -->
+<section class="section" style="background: var(--bg-mid);">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-num">PART 02</div>
+      <h2 class="section-title">目标用户及痛点</h2>
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-diamond"></div>
+        <div class="divider-line"></div>
+      </div>
+      <p class="section-desc">谁会玩这款游戏？他们需要什么？</p>
+    </div>
+
+    <div class="card-grid" style="margin-bottom:48px;">
+      <div class="card">
+        <span class="card-icon">🎮</span>
+        <div class="card-title">剧情游戏爱好者</div>
+        <div class="card-text">喜欢《隐形守护者》《拣爱》《飞越13号房》等互动叙事游戏，追求有深度、有选择重量的故事体验。</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">💼</span>
+        <div class="card-title">创业者 / 职场人</div>
+        <div class="card-text">正在经历或曾经经历过低谷，从真实逆袭故事中寻找共鸣和力量，渴望"精神氮泵"。</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">📱</span>
+        <div class="card-title">泛娱乐用户</div>
+        <div class="card-text">对罗永浩真实故事感兴趣，关注社会热点话题，喜欢有话题性、可以讨论和分享的内容。</div>
+      </div>
+    </div>
+
+    <h3 style="text-align:center;font-size:20px;margin-bottom:32px;color:var(--text-soft);">当前痛点 vs 我们的解决</h3>
+    <div class="pain-grid">
+      <div class="pain-card">
+        <div class="pain-title" style="color:var(--accent-red);">❌ 现有痛点</div>
+        <div class="pain-desc">励志传记/纪录片是被动接受，缺乏代入感，"知道"但"感受不到"那种抉择的重量。</div>
+      </div>
+      <div class="pain-card solve">
+        <div class="pain-title" style="color:var(--accent-green);">✅ 我们的解法</div>
+        <div class="pain-desc">玩家亲自做出每一个关键选择，承担选择的后果，从"看别人的故事"变成"活自己的选择"。</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-title" style="color:var(--accent-red);">❌ 现有痛点</div>
+        <div class="pain-desc">虚构剧情游戏结局虽然多样，但通关后缺乏现实锚点，"感动但不落地"。</div>
+      </div>
+      <div class="pain-card solve">
+        <div class="pain-title" style="color:var(--accent-green);">✅ 我们的解法</div>
+        <div class="pain-desc">基于真实人物改编，每个重大抉择都有现实原型，通关后回看真实故事有更深层的感悟。</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-title" style="color:var(--accent-red);">❌ 现有痛点</div>
+        <div class="pain-desc">碎片化时代缺乏高质量叙事内容，短视频刷完空虚，需要"有营养"的娱乐。</div>
+      </div>
+      <div class="pain-card solve">
+        <div class="pain-title" style="color:var(--accent-green);">✅ 我们的解法</div>
+        <div class="pain-desc">单局游戏30-60分钟，87个场景3-5万字剧本，获得完整的情感弧光和人生体验。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 游戏特色 ===== -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-num">PART 03</div>
+      <h2 class="section-title">游戏特色</h2>
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-diamond"></div>
+        <div class="divider-line"></div>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <span class="card-icon">🌳</span>
+        <div class="card-title">六幕式电视剧结构</div>
+        <div class="card-text">少年时代→北漂岁月→坚石时代→至暗时刻→重生之路→终章，像追一部好剧一样推进剧情，每幕有悬念、有高潮、有情感炸弹。</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">⚖️</span>
+        <div class="card-title">三维数值系统</div>
+        <div class="card-text">理想值（红色）代表对梦想的坚持，现实值（蓝色）代表对商业的妥协，温情值（橙色）代表对家人朋友的珍视。每个选择都会改变属性，属性导向不同结局。</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🏆</span>
+        <div class="card-title">17个成就 + 13种结局</div>
+        <div class="card-text">从"最佳结局：理想不死"到"隐藏结局：细红线归来"，涵盖成功、平凡、失败、黑色幽默等多种结局，加上17个可解锁成就，鼓励多周目探索。</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🔓</span>
+        <div class="card-title">二周目解锁机制</div>
+        <div class="card-text">第一次玩看不到D支线（加入红果），通关一次后解锁，E支线（卖公司）仅一周目可见，类似《尼尔：机械纪元》的多周目叙事设计。</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🎨</span>
+        <div class="card-title">像素+动漫叙事风格</div>
+        <div class="card-text">清新像素风与沉重现实题材形成艺术反差，类似《去月球》《拣爱》的"童话画风讲深刻故事"，用画面温暖每一个至暗时刻。</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🎭</span>
+        <div class="card-title">有血有肉的角色</div>
+        <div class="card-text">老王（工程师）、老周（法务）、小张（财务）、妻子林晓、程总、蒂姆……每个配角都有自己的故事线，不只是推动剧情的工具人。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 剧情时间线 ===== -->
+<section class="section" style="background:var(--bg-mid);">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-num">PART 04</div>
+      <h2 class="section-title">剧情架构</h2>
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-diamond"></div>
+        <div class="divider-line"></div>
+      </div>
+      <p class="section-desc">六幕式叙事，87个场景，约5万字剧本</p>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-era">第一幕 · 少年时代</div>
+        <div class="timeline-desc">机械厂家属院，父亲修收音机，课堂上的"自由宣言"，退学离家，火车站长椅上的那一夜，二手书店遇到吴老板，摆地摊被城管追。</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-era">第二幕 · 北漂岁月</div>
+        <div class="timeline-desc">出租屋闭关背单词，三千遍录音，求职信选择，第一堂课，遇见妻子，博客创业失败，罗诚英语成名，接到"做手机"的邀约。</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-era">第三幕 · 坚石时代</div>
+        <div class="timeline-desc">三十人挤在走廊创业，第一台原型机，S1发布会，第一家线下店，代工厂危机，供应商喝酒，最后一次团建——辉煌与隐患并存。</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-era">第四幕 · 至暗时刻</div>
+        <div class="timeline-desc">深夜办公室翻看老照片，妻子的来电，走廊尽头抽烟，老王来告别，老周说"不管你做什么我跟着"，三条路摆在面前——做手机？直播还债？加入谷米？</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-era">第五幕 · 重生之路</div>
+        <div class="timeline-desc">每条支线都有3-5个中间选择点：A线继续做手机面临降本提价抉择，B线直播从被骂到走红，C线谷米从被否到Note大卖，D线红果文化冲击，E线退出后的平凡生活。</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-era">第六幕 · 终章</div>
+        <div class="timeline-desc">13种结局，从"理想不死"到"细红线归来"，每个结局都有"多年以后"的尾声，呼应真实世界中罗老师2025年的细红线科技和十字路口播客。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 结局分支 ===== -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-num">PART 05</div>
+      <h2 class="section-title">结局分支</h2>
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-diamond"></div>
+        <div class="divider-line"></div>
+      </div>
+      <p class="section-desc">在至暗时刻，你的选择决定他的命运</p>
+    </div>
+
+    <div class="branch-visual">
+      <div class="branch-center">至暗时刻 · 五条路</div>
+
+      <div class="branch-row">
+        <div class="branch-item">
+          <div class="branch-label" style="color:var(--accent-red);">A. 继续做手机</div>
+          <div class="branch-type">理想主义之路</div>
+        </div>
+        <div class="branch-item">
+          <div class="branch-label" style="color:var(--accent-purple);">B. 直播带货</div>
+          <div class="branch-type">现实主义之路</div>
+        </div>
+        <div class="branch-item">
+          <div class="branch-label" style="color:var(--accent-orange);">C. 加入谷米</div>
+          <div class="branch-type">合作共赢之路</div>
+        </div>
+        <div class="branch-item" style="border-style:dashed;">
+          <div class="branch-label" style="color:var(--accent-blue);">D. 加入红果</div>
+          <div class="branch-type">🔒 二周目解锁</div>
+        </div>
+        <div class="branch-item" style="border-style:dashed;">
+          <div class="branch-label" style="color:var(--text-dim);">E. 卖掉公司</div>
+          <div class="branch-type">🔒 仅一周目</div>
+        </div>
+      </div>
+
+      <div style="color:var(--text-dim);font-size:13px;margin:8px 0 24px;">↓ 每条路都有多个中间选择，导向不同结局 ↓</div>
+
+      <div class="branch-row">
+        <div class="branch-item best">
+          <div class="branch-label" style="color:var(--accent-gold);">理想不死 ★★★★★</div>
+          <div class="branch-type">最佳结局</div>
+        </div>
+        <div class="branch-item good">
+          <div class="branch-label" style="color:var(--accent-green);">真还传 ★★★★</div>
+          <div class="branch-type">好结局</div>
+        </div>
+        <div class="branch-item good">
+          <div class="branch-label" style="color:var(--accent-green);">谷米合伙人 ★★★★</div>
+          <div class="branch-type">好结局</div>
+        </div>
+        <div class="branch-item good">
+          <div class="branch-label" style="color:var(--accent-green);">归国赤子 ★★★★</div>
+          <div class="branch-type">好结局</div>
+        </div>
+      </div>
+      <div class="branch-row">
+        <div class="branch-item normal">
+          <div class="branch-label" style="color:var(--accent-blue);">小而美 ★★★</div>
+          <div class="branch-type">普通结局</div>
+        </div>
+        <div class="branch-item normal">
+          <div class="branch-label" style="color:var(--accent-blue);">流量明星 ★★★</div>
+          <div class="branch-type">普通结局</div>
+        </div>
+        <div class="branch-item normal">
+          <div class="branch-label" style="color:var(--accent-blue);">平凡是真 ★★★</div>
+          <div class="branch-type">普通结局</div>
+        </div>
+        <div class="branch-item bad">
+          <div class="branch-label" style="color:var(--accent-red);">梦碎坚石 ★★</div>
+          <div class="branch-type">失败结局</div>
+        </div>
+        <div class="branch-item bad">
+          <div class="branch-label" style="color:var(--accent-red);">网红迷途 ★★</div>
+          <div class="branch-type">失败结局</div>
+        </div>
+      </div>
+      <div class="branch-row">
+        <div class="branch-item bad">
+          <div class="branch-label" style="color:var(--accent-red);">消失的老罗 ★</div>
+          <div class="branch-type">失败结局</div>
+        </div>
+        <div class="branch-item bad">
+          <div class="branch-label" style="color:var(--accent-red);">异客 ★★</div>
+          <div class="branch-type">失败结局</div>
+        </div>
+        <div class="branch-item hidden">
+          <div class="branch-label" style="color:var(--accent-purple);">细红线归来 ★★★★★</div>
+          <div class="branch-type">隐藏结局 🔮</div>
+        </div>
+        <div class="branch-item hidden">
+          <div class="branch-label" style="color:var(--accent-purple);">十字路口 ★★★★</div>
+          <div class="branch-type">隐藏结局 🎙️</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 价值与意义 ===== -->
+<section class="section" style="background:var(--bg-mid);">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-num">PART 06</div>
+      <h2 class="section-title">价值与意义</h2>
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-diamond"></div>
+        <div class="divider-line"></div>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card">
+        <span class="card-icon">💡</span>
+        <div class="card-title">社会价值</div>
+        <div class="card-text">传递"永不放弃、坚持理想"的正能量价值观。在经济下行、创业艰难的大环境下，这款游戏是一剂"精神氮泵"——不是鸡汤，而是让玩家通过亲身体验明白：每一个低谷都是选择的起点，真正的失败是放弃选择。</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">📈</span>
+        <div class="card-title">商业价值</div>
+        <div class="card-text">基于真实公众人物改编，自带话题热度和传播潜力。多分支设计提升重玩率，成就系统增加收集乐趣，可拓展为系列作品（如后续推出其他真实人物的故事），形成"真人故事改编游戏"的独特IP矩阵。</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🎮</span>
+        <div class="card-title">行业价值</div>
+        <div class="card-text">探索"真人传记+互动叙事"的游戏新品类。不同于虚构的GAL/AVG，真实人物改编的互动游戏在情感深度和社会共鸣上有天然优势，为国产叙事游戏开辟新方向。</div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🤖</span>
+        <div class="card-title">AI 创作价值</div>
+        <div class="card-text">本项目全程使用 TRAE AI 辅助开发，从剧本创作、代码编写到美术资源生成，验证了AI辅助独立游戏开发的完整工作流，为个人开发者提供了可复制的范例。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 技术栈 ===== -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-num">PART 07</div>
+      <h2 class="section-title">技术实现</h2>
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-diamond"></div>
+        <div class="divider-line"></div>
+      </div>
+    </div>
+    <div style="text-align:center;">
+      <p style="color:var(--text-soft);margin-bottom:16px;font-size:15px;max-width:600px;margin-left:auto;margin-right:auto;line-height:2;">
+        使用 Python + Pygame 开发，JSON 存储剧情数据，AI 生成像素动漫风格美术资源。<br>
+        支持键盘/鼠标双操控，PC 端先行，移动端后续适配。
+      </p>
+      <div class="tech-row">
+        <span class="tech-tag">Python 3</span>
+        <span class="tech-tag">Pygame</span>
+        <span class="tech-tag">JSON 数据驱动</span>
+        <span class="tech-tag">AI 美术生成</span>
+        <span class="tech-tag">像素+动漫风格</span>
+        <span class="tech-tag">数值系统</span>
+        <span class="tech-tag">成就系统</span>
+        <span class="tech-tag">存档/读档</span>
+        <span class="tech-tag">二周目解锁</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<section class="cta-section">
+  <div class="container">
+    <div class="pixel-line"></div>
+    <h2 class="cta-title">你的选择，决定他的命运</h2>
+    <p class="cta-text">
+      13种结局，87个场景，17个成就。<br>
+      这一次，换你来走这条路。
+    </p>
+    <div style="color:var(--text-dim);font-size:13px;letter-spacing:2px;margin-top:48px;">
+      《罗诚的故事》 · TRAE AI 创造力大赛 · 生活娱乐赛道
+    </div>
+  </div>
+</section>
+
+<div class="footer">
+  本游戏为虚构作品，如有雷同纯属巧合 · Made with TRAE AI
+</div>
+
+<script>
+  // 滚动动画
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.card, .timeline-item, .pain-card, .branch-item').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    observer.observe(el);
+  });
+
+  // 属性条动画
+  const barObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const fills = entry.target.querySelectorAll('.stat-bar-fill');
+        fills.forEach(fill => {
+          const w = fill.style.width;
+          fill.style.width = '0%';
+          setTimeout(() => { fill.style.width = w; }, 200);
+        });
+      }
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll('.stats-visual').forEach(el => barObserver.observe(el));
+</script>
+
+</body>
+</html>

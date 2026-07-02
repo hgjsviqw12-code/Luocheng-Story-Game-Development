@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>俞敏洪人生树状图 - 逆袭人生</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            color: #fff;
+            padding: 30px 0;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .header h1 span { color: #48bb78; }
+        .header p { color: #a0a0a0; font-size: 1.1em; }
+        .tree-container { overflow-x: auto; padding: 40px 20px; min-width: 1200px; }
+        .tree { display: flex; justify-content: center; }
+        .level { display: flex; justify-content: center; position: relative; padding: 0 20px; }
+        .level::before { content: ''; position: absolute; top: 0; left: 50%; width: 2px; height: 30px; background: #4a5568; }
+        .level:first-child::before { display: none; }
+        .node { position: relative; margin: 0 15px; text-align: center; }
+        .node-box {
+            background: linear-gradient(145deg, #2d3748, #1a202c);
+            border: 2px solid #4a5568;
+            border-radius: 12px;
+            padding: 15px 20px;
+            min-width: 180px;
+            max-width: 220px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .node-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #48bb78, #68d391);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .node-box:hover { transform: translateY(-5px); border-color: #48bb78; box-shadow: 0 10px 30px rgba(72, 187, 120, 0.3); }
+        .node-box:hover::before { opacity: 1; }
+        .node-box.start { background: linear-gradient(145deg, #48bb78, #38a169); border-color: #48bb78; }
+        .node-box.good { border-color: #48bb78; }
+        .node-box.bad { border-color: #f56565; }
+        .node-box.hidden { border-color: #9f7aea; background: linear-gradient(145deg, #553c9a, #44337a); }
+        .node-box .title { color: #fff; font-size: 0.95em; font-weight: bold; margin-bottom: 5px; }
+        .node-box .desc { color: #a0a0a0; font-size: 0.8em; }
+        .node-box.start .title { font-size: 1.1em; }
+        .node-box.start .desc { color: #c6f6d5; }
+        .branch-line { position: absolute; top: -30px; left: 50%; width: 2px; height: 30px; background: #4a5568; }
+        .children { display: flex; justify-content: center; margin-top: 40px; position: relative; }
+        .children::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: calc(100% - 100px); height: 2px; background: #4a5568; }
+        .children .node::before { content: ''; position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 2px; height: 40px; background: #4a5568; }
+        .legend { display: flex; justify-content: center; gap: 30px; margin-top: 40px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 8px; color: #a0a0a0; font-size: 0.9em; }
+        .legend-color { width: 20px; height: 20px; border-radius: 4px; border: 2px solid; }
+        .legend-color.start { border-color: #48bb78; background: #48bb78; }
+        .legend-color.normal { border-color: #4a5568; background: #2d3748; }
+        .legend-color.good { border-color: #48bb78; background: #48bb78; }
+        .legend-color.bad { border-color: #f56565; background: #f56565; }
+        .legend-color.hidden { border-color: #9f7aea; background: #9f7aea; }
+
+        .endings-section { margin-top: 60px; padding: 40px; background: rgba(255,255,255,0.05); border-radius: 20px; }
+        .endings-section h2 { color: #fff; text-align: center; margin-bottom: 30px; font-size: 1.8em; }
+        .endings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1400px; margin: 0 auto; }
+        .ending-card { background: linear-gradient(145deg, #2d3748, #1a202c); border-radius: 12px; padding: 20px; border: 1px solid #4a5568; transition: transform 0.3s; }
+        .ending-card:hover { transform: translateY(-3px); }
+        .ending-card h3 { color: #fff; margin-bottom: 10px; font-size: 1.1em; }
+        .ending-card .code { color: #48bb78; font-size: 0.85em; margin-bottom: 8px; }
+        .ending-card .type { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75em; margin-bottom: 10px; }
+        .ending-card .type.best { background: linear-gradient(90deg, #f6e05e, #ecc94b); color: #1a202c; }
+        .ending-card .type.good { background: #48bb78; color: #fff; }
+        .ending-card .type.normal { background: #718096; color: #fff; }
+        .ending-card .type.bad { background: #f56565; color: #fff; }
+        .ending-card .type.hidden { background: #9f7aea; color: #fff; }
+        .ending-card p { color: #a0a0a0; font-size: 0.9em; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>逆袭<span>人生</span> - 俞敏洪剧情树状图</h1>
+        <p>从新东方崩溃到东方甄选，你的选择将重塑命运</p>
+    </div>
+
+    <div class="tree-container">
+        <div class="tree">
+            <!-- 起点 -->
+            <div class="level">
+                <div class="node">
+                    <div class="node-box start">
+                        <div class="title">【起点】至暗时刻</div>
+                        <div class="desc">2021年 · "双减"政策 · 新东方崩塌</div>
+                    </div>
+                    <div class="children">
+                        <!-- A分支：关闭 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box" onclick="toggleBranch('branch-a')">
+                                <div class="title">A. 关闭新东方</div>
+                                <div class="desc">体面退场</div>
+                            </div>
+                            <div class="children" id="branch-a">
+                                <div class="node">
+                                    <div class="node-box" onclick="toggleBranch('a1')">
+                                        <div class="title">A1. 全额退学费</div>
+                                        <div class="desc">教父的担当</div>
+                                    </div>
+                                    <div class="children" id="a1">
+                                        <div class="node">
+                                            <div class="node-box good">
+                                                <div class="title">A1-1. 宣布退休</div>
+                                                <div class="desc">功成身退 · 好结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box">
+                                                <div class="title">A1-2. 转型方向未明</div>
+                                                <div class="desc">进入第二幕B</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="node">
+                                    <div class="node-box" onclick="toggleBranch('a2')">
+                                        <div class="title">A2. 保留成人教育</div>
+                                        <div class="desc">断臂求生</div>
+                                    </div>
+                                    <div class="children" id="a2">
+                                        <div class="node">
+                                            <div class="node-box bad">
+                                                <div class="title">A2-1. 素质教育</div>
+                                                <div class="desc">艰难求生 · 失败结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box good" onclick="toggleBranch('a2-dongfang')">
+                                                <div class="title">A2-2. 直播带货 ★</div>
+                                                <div class="desc">东方甄选 · 解锁主线</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- B分支：保留品牌 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box" onclick="toggleBranch('branch-b')">
+                                <div class="title">B. 保留品牌转型</div>
+                                <div class="desc">寻找新赛道</div>
+                            </div>
+                            <div class="children" id="branch-b">
+                                <div class="node">
+                                    <div class="node-box bad" onclick="toggleBranch('b1')">
+                                        <div class="title">B1. 素质教育</div>
+                                        <div class="desc">赛道错误</div>
+                                    </div>
+                                    <div class="children" id="b1">
+                                        <div class="node">
+                                            <div class="node-box bad">
+                                                <div class="title">B1-1. 咬牙坚持</div>
+                                                <div class="desc">壮烈牺牲 · 失败结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="node">
+                                    <div class="node-box" onclick="toggleBranch('b2')">
+                                        <div class="title">B2. 乡村教育</div>
+                                        <div class="desc">理想主义</div>
+                                    </div>
+                                    <div class="children" id="b2">
+                                        <div class="node">
+                                            <div class="node-box good">
+                                                <div class="title">B2-1. 乡村图书馆</div>
+                                                <div class="desc">桃李满天下 · 好结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box good">
+                                                <div class="title">B2-2. 职业教育</div>
+                                                <div class="desc">另辟蹊径 · 好结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- C分支：东方甄选 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box good" onclick="toggleBranch('branch-c')">
+                                <div class="title">C. 东方甄选</div>
+                                <div class="desc">知识型直播带货</div>
+                            </div>
+                            <div class="children" id="branch-c">
+                                <div class="node">
+                                    <div class="node-box good" onclick="toggleBranch('c1')">
+                                        <div class="title">C1. 知识型路线</div>
+                                        <div class="desc">"那天晚上，月亮很美"</div>
+                                    </div>
+                                    <div class="children" id="c1">
+                                        <div class="node">
+                                            <div class="node-box good">
+                                                <div class="title">C1-1. 签约头部主播</div>
+                                                <div class="desc">帝国崛起 · 好结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box good" style="border-color: #f6e05e; background: linear-gradient(145deg, #b7791f, #975a16);">
+                                                <div class="title">C1-2. 精品路线 ★</div>
+                                                <div class="desc">细水长流 · 最佳结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box bad">
+                                                <div class="title">C1-3. 布局线下</div>
+                                                <div class="desc">昙花一现 · 失败结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="node">
+                                    <div class="node-box" onclick="toggleBranch('c2')">
+                                        <div class="title">C2. 接受投资</div>
+                                        <div class="desc">资本的代价</div>
+                                    </div>
+                                    <div class="children" id="c2">
+                                        <div class="node">
+                                            <div class="node-box bad">
+                                                <div class="title">C2-1. 提高变现</div>
+                                                <div class="desc">失去灵魂 · 失败结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box good">
+                                                <div class="title">C2-2. 回购股份</div>
+                                                <div class="desc">独立自主 · 好结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- D分支：移民 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box hidden" onclick="toggleBranch('branch-d')">
+                                <div class="title">D. 移民海外</div>
+                                <div class="desc">隐藏剧情</div>
+                            </div>
+                            <div class="children" id="branch-d">
+                                <div class="node">
+                                    <div class="node-box hidden" style="border-color: #9f7aea;">
+                                        <div class="title">D1. 加拿大顾问 ★</div>
+                                        <div class="desc">海阔天空 · 隐藏结局</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- E分支：退休 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box" onclick="toggleBranch('branch-e')">
+                                <div class="title">E. 退休著书</div>
+                                <div class="desc">传道者</div>
+                            </div>
+                            <div class="children" id="branch-e">
+                                <div class="node">
+                                    <div class="node-box good">
+                                        <div class="title">E1. 写书演讲</div>
+                                        <div class="desc">传道者 · 好结局</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="legend-color start"></div><span>起点</span></div>
+        <div class="legend-item"><div class="legend-color normal"></div><span>普通节点</span></div>
+        <div class="legend-item"><div class="legend-color good"></div><span>好结局</span></div>
+        <div class="legend-item"><div class="legend-color bad"></div><span>失败结局</span></div>
+        <div class="legend-item"><div class="legend-color hidden"></div><span>隐藏剧情</span></div>
+    </div>
+
+    <div class="endings-section">
+        <h2>结局一览表</h2>
+        <div class="endings-grid">
+            <div class="ending-card">
+                <div class="code">C1-2</div>
+                <h3>细水长流</h3>
+                <span class="type best">★ 最佳结局</span>
+                <p>精品路线，知识型直播标杆，董宇辉成为直播界清流，东方甄选成为最有文化直播间</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">C1-1</div>
+                <h3>帝国崛起</h3>
+                <span class="type good">好结局</span>
+                <p>签约千名主播，市值突破千亿，但团队开始官僚化</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">C2-2</div>
+                <h3>独立自主</h3>
+                <span class="type good">好结局</span>
+                <p>花费8亿回购股份，保持东方甄选的灵魂和文化调性</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">B2-1</div>
+                <h3>桃李满天下</h3>
+                <span class="type good">好结局</span>
+                <p>全国建立2000个乡村图书馆，入选乡村振兴杰出人物</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">A1-1</div>
+                <h3>功成身退</h3>
+                <span class="type good">好结局</span>
+                <p>退还学费，去欧洲旅居，著书《我曾走在崩溃的边缘》</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">D1</div>
+                <h3>海阔天空</h3>
+                <span class="type hidden">★ 隐藏结局</span>
+                <p>移民加拿大温哥华，开教育咨询公司，异国他乡找到新意义</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">E1</div>
+                <h3>传道者</h3>
+                <span class="type good">好结局</span>
+                <p>著书立说，入选改革开放40年100人</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">C1-3</div>
+                <h3>昙花一现</h3>
+                <span class="type bad">失败结局</span>
+                <p>线下门店失败，错过直播红利期</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleBranch(id) {
+            const branch = document.getElementById(id);
+            if (branch) {
+                branch.style.display = branch.style.display === 'none' ? 'flex' : 'none';
+            }
+        }
+    </script>
+</body>
+</html>

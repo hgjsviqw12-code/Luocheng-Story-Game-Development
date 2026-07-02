@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>罗诚的故事 - 游戏创意展示</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=ZCOOL+XiaoWei&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-0: #0a0a14;
+    --bg-1: #12121f;
+    --bg-2: #1a1a2e;
+    --bg-card: #1e1e38;
+    --bg-card-hover: #252545;
+    --accent: #e94560;
+    --accent-2: #ff6b6b;
+    --gold: #f6d365;
+    --gold-2: #fda085;
+    --blue: #4facfe;
+    --purple: #9b59b6;
+    --green: #00d2d3;
+    --text-0: #ffffff;
+    --text-1: #f0f0f5;
+    --text-2: #b0b0c8;
+    --text-3: #707090;
+    --border: #2a2a48;
+    --border-light: #3a3a5c;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg-0);
+    color: var(--text-1);
+    font-family: 'Noto Serif SC', serif;
+    line-height: 1.8;
+    overflow-x: hidden;
+  }
+
+  /* 星空背景 */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at top, rgba(233,69,96,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(79,172,254,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at bottom left, rgba(246,211,101,0.05) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 粒子效果容器 */
+  #particles {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== NAV ===== */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 16px 32px;
+    backdrop-filter: blur(12px);
+    background: rgba(10,10,20,0.7);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .nav-logo {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 20px;
+    color: var(--text-0);
+    letter-spacing: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .nav-logo span { color: var(--accent); }
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+  .nav-links a {
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 14px;
+    letter-spacing: 2px;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0;
+    width: 0; height: 2px;
+    background: var(--gold);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover::after { width: 100%; }
+
+  @media (max-width: 720px) {
+    .nav-links { display: none; }
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    padding: 100px 24px 60px;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    border: 1px solid rgba(246,211,101,0.3);
+    padding: 6px 20px;
+    border-radius: 20px;
+    margin-bottom: 32px;
+    background: rgba(246,211,101,0.05);
+  }
+  .hero-tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .hero h1 {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 88px;
+    font-weight: 400;
+    background: linear-gradient(135deg, #fff 0%, #f6d365 50%, #e94560 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+    letter-spacing: 12px;
+    line-height: 1.2;
+  }
+
+  .hero-subtitle {
+    font-size: 20px;
+    color: var(--text-2);
+    margin-bottom: 48px;
+    letter-spacing: 8px;
+  }
+
+  .hero-desc {
+    font-size: 16px;
+    color: var(--text-2);
+    max-width: 560px;
+    line-height: 2.2;
+    margin-bottom: 56px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 64px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 64px;
+  }
+  .stat-card {
+    text-align: center;
+    padding: 24px 32px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: all 0.3s;
+    min-width: 120px;
+  }
+  .stat-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 32px rgba(233,69,96,0.15);
+  }
+  .stat-num {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 42px;
+    font-weight: 400;
+    background: linear-gradient(135deg, var(--accent), var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+    line-height: 1.2;
+  }
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-3);
+    letter-spacing: 2px;
+    margin-top: 4px;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 36px;
+    border-radius: 8px;
+    font-size: 15px;
+    letter-spacing: 2px;
+    text-decoration: none;
+    transition: all 0.3s;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #c0392b);
+    color: white;
+    box-shadow: 0 4px 20px rgba(233,69,96,0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(233,69,96,0.4);
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-1);
+    border: 1px solid var(--border-light);
+  }
+  .btn-secondary:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .scroll-indicator {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-3);
+    font-size: 12px;
+    letter-spacing: 3px;
+  }
+  .scroll-mouse {
+    width: 24px; height: 38px;
+    border: 2px solid var(--text-3);
+    border-radius: 12px;
+    position: relative;
+  }
+  .scroll-mouse::before {
+    content: '';
+    position: absolute;
+    top: 6px; left: 50%;
+    transform: translateX(-50%);
+    width: 4px; height: 8px;
+    background: var(--text-3);
+    border-radius: 2px;
+    animation: scrollDot 2s infinite;
+  }
+  @keyframes scrollDot {
+    0% { top: 6px; opacity: 1; }
+    100% { top: 20px; opacity: 0; }
+  }
+
+  /* ===== SECTION ===== */
+  .section {
+    padding: 100px 0;
+    position: relative;
+  }
+  .section-alt {
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.01), transparent);
+  }
+
+  .section-head {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+  .section-kicker {
+    font-size: 12px;
+    letter-spacing: 6px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+  .section-title {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 40px;
+    font-weight: 400;
+    color: var(--text-0);
+    margin-bottom: 16px;
+    letter-spacing: 6px;
+  }
+  .section-desc {
+    font-size: 15px;
+    color: var(--text-2);
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 2;
+  }
+
+  .title-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 20px 0 0;
+  }
+  .title-divider span {
+    width: 40px; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+  .title-divider i {
+    color: var(--gold);
+    font-size: 12px;
+  }
+
+  /* ===== FEATURE GRID ===== */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+  }
+  .feature-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--gold));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .feature-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--border-light);
+    background: var(--bg-card-hover);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  }
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-icon {
+    width: 56px; height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, rgba(233,69,96,0.15), rgba(246,211,101,0.1));
+    border: 1px solid rgba(233,69,96,0.2);
+  }
+  .feature-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-0);
+    margin-bottom: 12px;
+  }
+  .feature-text {
+    font-size: 14px;
+    color: var(--text-2);
+    line-height: 2;
+  }
+
+  /* ===== STORY TIMELINE ===== */
+  .story-timeline {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .story-timeline::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, var(--accent), var(--gold), var(--blue), var(--purple), var(--green));
+    transform: translateX(-50%);
+  }
+  .story-item {
+    position: relative;
+    margin-bottom: 48px;
+    display: flex;
+    align-items: flex-start;
+  }
+  .story-item:nth-child(odd) { flex-direction: row; }
+  .story-item:nth-child(even) { flex-direction: row-reverse; }
+
+  .story-dot {
+    position: absolute;
+    left: 50%;
+    top: 8px;
+    transform: translateX(-50%);
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--bg-0);
+    border: 3px solid var(--accent);
+    z-index: 2;
+    transition: all 0.3s;
+  }
+  .story-item:hover .story-dot {
+    background: var(--accent);
+    box-shadow: 0 0 20px var(--accent);
+  }
+  .story-item:nth-child(2) .story-dot { border-color: #e67e22; }
+  .story-item:nth-child(2):hover .story-dot { background: #e67e22; box-shadow: 0 0 20px #e67e22; }
+  .story-item:nth-child(3) .story-dot { border-color: var(--blue); }
+  .story-item:nth-child(3):hover .story-dot { background: var(--blue); box-shadow: 0 0 20px var(--blue); }
+  .story-item:nth-child(4) .story-dot { border-color: var(--purple); }
+  .story-item:nth-child(4):hover .story-dot { background: var(--purple); box-shadow: 0 0 20px var(--purple); }
+  .story-item:nth-child(5) .story-dot { border-color: var(--gold); }
+  .story-item:nth-child(5):hover .story-dot { background: var(--gold); box-shadow: 0 0 20px var(--gold); }
+  .story-item:nth-child(6) .story-dot { border-color: var(--green); }
+  .story-item:nth-child(6):hover .story-dot { background: var(--green); box-shadow: 0 0 20px var(--green); }
+
+  .story-content {
+    width: 45%;
+    padding: 24px 28px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: all 0.3s;
+  }
+  .story-item:hover .story-content {
+    border-color: var(--border-light);
+    transform: translateY(-4px);
+  }
+  .story-era {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 18px;
+    color: var(--gold);
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+  .story-desc {
+    font-size: 14px;
+    color: var(--text-2);
+    line-height: 2;
+  }
+
+  @media (max-width: 720px) {
+    .story-timeline::before { left: 20px; }
+    .story-item, .story-item:nth-child(even) { flex-direction: row; padding-left: 50px; }
+    .story-dot { left: 20px; }
+    .story-content { width: 100%; }
+  }
+
+  /* ===== BRANCHES ===== */
+  .branches-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .branches-wrap::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--gold), var(--blue), var(--purple), var(--green));
+  }
+
+  .branch-center {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .branch-center-label {
+    display: inline-block;
+    padding: 12px 32px;
+    background: linear-gradient(135deg, var(--accent), #c0392b);
+    color: white;
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 18px;
+    letter-spacing: 4px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(233,69,96,0.3);
+  }
+
+  .branch-paths {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+  .path-item {
+    padding: 16px 24px;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    text-align: center;
+    min-width: 130px;
+    transition: all 0.3s;
+    cursor: default;
+  }
+  .path-item:hover { transform: translateY(-4px); }
+  .path-item.locked { border-style: dashed; opacity: 0.7; }
+  .path-name {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .path-desc {
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 1px;
+  }
+  .path-item:nth-child(1) .path-name { color: var(--accent); }
+  .path-item:nth-child(2) .path-name { color: #e67e22; }
+  .path-item:nth-child(3) .path-name { color: var(--blue); }
+  .path-item:nth-child(4) .path-name { color: var(--purple); }
+  .path-item:nth-child(5) .path-name { color: var(--text-3); }
+
+  .endings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+  .ending-card {
+    padding: 18px 16px;
+    border-radius: 10px;
+    text-align: center;
+    background: var(--bg-2);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  .ending-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-light);
+  }
+  .ending-stars { color: var(--gold); font-size: 14px; margin-bottom: 6px; }
+  .ending-name {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text-0);
+  }
+  .ending-type {
+    font-size: 11px;
+    color: var(--text-3);
+    letter-spacing: 1px;
+  }
+  .ending-card.best { border-color: rgba(246,211,101,0.3); }
+  .ending-card.best .ending-name { color: var(--gold); }
+  .ending-card.good { border-color: rgba(0,210,211,0.2); }
+  .ending-card.good .ending-name { color: var(--green); }
+  .ending-card.normal { border-color: rgba(79,172,254,0.2); }
+  .ending-card.normal .ending-name { color: var(--blue); }
+  .ending-card.bad { border-color: rgba(233,69,96,0.2); }
+  .ending-card.bad .ending-name { color: var(--accent); }
+  .ending-card.hidden { border-color: rgba(155,89,182,0.3); border-style: dashed; }
+  .ending-card.hidden .ending-name { color: var(--purple); }
+
+  /* ===== CHARACTERS ===== */
+  .char-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px;
+  }
+  .char-card {
+    text-align: center;
+    padding: 28px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    transition: all 0.3s;
+  }
+  .char-card:hover {
+    transform: translateY(-6px);
+    border-color: var(--border-light);
+    background: var(--bg-card-hover);
+  }
+  .char-avatar {
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    background: linear-gradient(135deg, var(--bg-2), var(--bg-card));
+    border: 3px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+  }
+  .char-card:nth-child(1) .char-avatar { border-color: var(--accent); }
+  .char-card:nth-child(2) .char-avatar { border-color: var(--purple); }
+  .char-card:nth-child(3) .char-avatar { border-color: var(--blue); }
+  .char-card:nth-child(4) .char-avatar { border-color: var(--green); }
+  .char-card:nth-child(5) .char-avatar { border-color: var(--gold); }
+  .char-card:nth-child(6) .char-avatar { border-color: #e67e22; }
+
+  .char-name {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-0);
+    margin-bottom: 4px;
+  }
+  .char-role {
+    font-size: 12px;
+    color: var(--text-3);
+    letter-spacing: 1px;
+  }
+
+  /* ===== STATS SYSTEM ===== */
+  .stats-showcase {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  @media (max-width: 600px) {
+    .stats-showcase { grid-template-columns: 1fr; }
+  }
+  .stat-showcase-item {
+    text-align: center;
+    padding: 32px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    transition: all 0.3s;
+  }
+  .stat-showcase-item:hover { transform: translateY(-4px); }
+  .stat-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+  .stat-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .stat-showcase-item:nth-child(1) .stat-name { color: var(--accent); }
+  .stat-showcase-item:nth-child(2) .stat-name { color: var(--blue); }
+  .stat-showcase-item:nth-child(3) .stat-name { color: #e67e22; }
+  .stat-bar-bg {
+    height: 8px;
+    background: var(--bg-2);
+    border-radius: 4px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .stat-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1.5s ease;
+  }
+  .stat-showcase-item:nth-child(1) .stat-bar-fill {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  }
+  .stat-showcase-item:nth-child(2) .stat-bar-fill {
+    background: linear-gradient(90deg, var(--blue), #74b9ff);
+  }
+  .stat-showcase-item:nth-child(3) .stat-bar-fill {
+    background: linear-gradient(90deg, #e67e22, var(--gold));
+  }
+  .stat-desc {
+    font-size: 13px;
+    color: var(--text-2);
+    line-height: 1.8;
+  }
+
+  /* ===== GALLERY ===== */
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+  }
+  .gallery-item {
+    aspect-ratio: 16/10;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--bg-card), var(--bg-2));
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--text-3);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+  .gallery-item:hover {
+    transform: scale(1.02);
+    border-color: var(--accent);
+  }
+  .gallery-item::after {
+    content: '点击预览';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 8px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    color: white;
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .gallery-item:hover::after { opacity: 1; }
+
+  /* ===== CTA ===== */
+  .cta-section {
+    text-align: center;
+    padding: 100px 24px;
+    position: relative;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-light), transparent);
+  }
+  .cta-title {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 42px;
+    font-weight: 400;
+    background: linear-gradient(135deg, #fff, var(--gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+    letter-spacing: 6px;
+  }
+  .cta-text {
+    font-size: 16px;
+    color: var(--text-2);
+    margin-bottom: 40px;
+    line-height: 2;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    padding: 48px 24px;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    color: var(--text-3);
+    font-size: 13px;
+    letter-spacing: 2px;
+  }
+  footer .divider-text {
+    margin: 0 12px;
+    color: var(--text-3);
+  }
+
+  /* ===== SCROLL ANIMATIONS ===== */
+  .fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* 延迟动画 */
+  .delay-1 { transition-delay: 0.1s; }
+  .delay-2 { transition-delay: 0.2s; }
+  .delay-3 { transition-delay: 0.3s; }
+  .delay-4 { transition-delay: 0.4s; }
+  .delay-5 { transition-delay: 0.5s; }
+  .delay-6 { transition-delay: 0.6s; }
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <span>罗</span>诚的故事
+  </div>
+  <ul class="nav-links">
+    <li><a href="#intro">游戏简介</a></li>
+    <li><a href="#story">剧情架构</a></li>
+    <li><a href="#features">核心特色</a></li>
+    <li><a href="#branches">结局分支</a></li>
+    <li><a href="#chars">人物介绍</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">互动叙事 · 多分支剧情</div>
+  <h1>罗诚的故事</h1>
+  <p class="hero-subtitle">从负债数亿到涅槃重生</p>
+  <p class="hero-desc">
+    一款基于真实人物改编的多分支剧情选择游戏。<br>
+    你将扮演主角罗诚，在人生的十字路口做出选择，<br>
+    体验从创业巅峰到负债谷底，再到涅槃重生的完整历程。
+  </p>
+  <div class="hero-stats">
+    <div class="stat-card fade-in delay-1">
+      <span class="stat-num">87+</span>
+      <span class="stat-label">剧情场景</span>
+    </div>
+    <div class="stat-card fade-in delay-2">
+      <span class="stat-num">13</span>
+      <span class="stat-label">种结局</span>
+    </div>
+    <div class="stat-card fade-in delay-3">
+      <span class="stat-num">17</span>
+      <span class="stat-label">个成就</span>
+    </div>
+    <div class="stat-card fade-in delay-4">
+      <span class="stat-num">5</span>
+      <span class="stat-label">条主线</span>
+    </div>
+  </div>
+  <div class="hero-cta">
+    <a href="#intro" class="btn btn-primary">了解详情 ↓</a>
+    <a href="#branches" class="btn btn-secondary">查看结局</a>
+  </div>
+  <div class="scroll-indicator">
+    <div class="scroll-mouse"></div>
+    <span>SCROLL</span>
+  </div>
+</section>
+
+<!-- INTRO -->
+<section class="section section-alt" id="intro">
+  <div class="container">
+    <div class="section-head fade-in">
+      <div class="section-kicker">GAME INTRODUCTION</div>
+      <h2 class="section-title">游戏简介</h2>
+      <div class="title-divider">
+        <span></span>
+        <i>◆</i>
+        <span></span>
+      </div>
+      <p class="section-desc">基于真实人物改编的互动叙事游戏，每一个选择都有重量</p>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card fade-in delay-1">
+        <div class="feature-icon">🌳</div>
+        <h3 class="feature-title">六幕式叙事结构</h3>
+        <p class="feature-text">少年时代 → 北漂岁月 → 坚石时代 → 至暗时刻 → 重生之路 → 终章。像追一部好剧一样推进剧情，每幕有悬念、有高潮、有情感炸弹。</p>
+      </div>
+      <div class="feature-card fade-in delay-2">
+        <div class="feature-icon">⚖️</div>
+        <h3 class="feature-title">三维数值系统</h3>
+        <p class="feature-text">理想值代表对梦想的坚持，现实值代表对商业的妥协，温情值代表对家人朋友的珍视。每个选择都会改变属性，属性导向不同结局。</p>
+      </div>
+      <div class="feature-card fade-in delay-3">
+        <div class="feature-icon">🔓</div>
+        <h3 class="feature-title">多周目解锁设计</h3>
+        <p class="feature-text">第一次玩看不到D支线，通关一次后解锁隐藏路线。E支线仅一周目可见，类似《尼尔：机械纪元》的多周目叙事设计。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STORY TIMELINE -->
+<section class="section" id="story">
+  <div class="container">
+    <div class="section-head fade-in">
+      <div class="section-kicker">STORY ARCHITECTURE</div>
+      <h2 class="section-title">剧情架构</h2>
+      <div class="title-divider">
+        <span></span>
+        <i>◆</i>
+        <span></span>
+      </div>
+      <p class="section-desc">六幕式叙事，约5万字剧本，87个精心设计的场景</p>
+    </div>
+
+    <div class="story-timeline">
+      <div class="story-item fade-in">
+        <div class="story-dot"></div>
+        <div class="story-content">
+          <div class="story-era">第一幕 · 少年时代</div>
+          <p class="story-desc">机械厂家属院的童年，父亲修收音机的背影，课堂上的"自由宣言"，退学离家的那个夜晚，火车站长椅上的星空，二手书店遇到的人生导师，摆地摊被城管追的狼狈。</p>
+        </div>
+      </div>
+      <div class="story-item fade-in">
+        <div class="story-dot"></div>
+        <div class="story-content">
+          <div class="story-era">第二幕 · 北漂岁月</div>
+          <p class="story-desc">出租屋闭关背单词，三千遍录音的疯狂，求职信石沉大海，第一堂课的紧张与兴奋，遇见生命中的她，博客时代的风起云涌，罗诚英语的成名之路，"做手机"的邀约到来。</p>
+        </div>
+      </div>
+      <div class="story-item fade-in">
+        <div class="story-dot"></div>
+        <div class="story-content">
+          <div class="story-era">第三幕 · 坚石时代</div>
+          <p class="story-desc">三十人挤在走廊创业，第一台原型机的诞生，S1发布会的震撼，第一家线下店的热闹，代工厂的深夜危机，供应商酒桌上的妥协，最后一次团建的欢笑与隐忧。</p>
+        </div>
+      </div>
+      <div class="story-item fade-in">
+        <div class="story-dot"></div>
+        <div class="story-content">
+          <div class="story-era">第四幕 · 至暗时刻</div>
+          <p class="story-desc">深夜办公室的老照片，妻子深夜的来电，走廊尽头的那根烟，老王来告别的那个下午，老周说"不管你做什么我跟着"，五条路摆在面前——你选哪一条？</p>
+        </div>
+      </div>
+      <div class="story-item fade-in">
+        <div class="story-dot"></div>
+        <div class="story-content">
+          <div class="story-era">第五幕 · 重生之路</div>
+          <p class="story-desc">每条支线都有3-5个中间选择点：A线继续做手机面临降本提价的抉择，B线直播从被骂到走红的蜕变，C线谷米从被否到Note大卖，D线红果的文化冲击，E线退出后的平凡生活。</p>
+        </div>
+      </div>
+      <div class="story-item fade-in">
+        <div class="story-dot"></div>
+        <div class="story-content">
+          <div class="story-era">第六幕 · 终章</div>
+          <p class="story-desc">13种结局，从"理想不死"到"细红线归来"，每个结局都有"多年以后"的尾声。多年后的你，会如何回望当年那个站在十字路口的自己？</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section section-alt" id="features">
+  <div class="container">
+    <div class="section-head fade-in">
+      <div class="section-kicker">CORE FEATURES</div>
+      <h2 class="section-title">核心特色</h2>
+      <div class="title-divider">
+        <span></span>
+        <i>◆</i>
+        <span></span>
+      </div>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card fade-in delay-1">
+        <div class="feature-icon">🎨</div>
+        <h3 class="feature-title">像素+动漫美学</h3>
+        <p class="feature-text">清新像素风与沉重现实题材形成艺术反差，类似《去月球》《拣爱》的"童话画风讲深刻故事"，用温暖的画面包裹每一个至暗时刻。</p>
+      </div>
+      <div class="feature-card fade-in delay-2">
+        <div class="feature-icon">🎭</div>
+        <h3 class="feature-title">有血有肉的角色</h3>
+        <p class="feature-text">老王、老周、小张、妻子林晓、程总、蒂姆……每个配角都有自己的故事线，不只是推动剧情的工具人。他们的选择，也在影响着你。</p>
+      </div>
+      <div class="feature-card fade-in delay-3">
+        <div class="feature-icon">🏆</div>
+        <h3 class="feature-title">成就收集系统</h3>
+        <p class="feature-text">17个可解锁成就，从"初出茅庐"到"理想不死"，从"真还传说"到"细红线归来"，鼓励多周目探索，每一次游玩都有新发现。</p>
+      </div>
+      <div class="feature-card fade-in delay-4">
+        <div class="feature-icon">🎵</div>
+        <h3 class="feature-title">沉浸式音乐体验</h3>
+        <p class="feature-text">6种场景背景音乐，主菜单、剧情、温情、紧张、结局、庆祝，随剧情自动切换，配合场景氛围，让每一次抉择都更有代入感。</p>
+      </div>
+      <div class="feature-card fade-in delay-5">
+        <div class="feature-icon">⌨️</div>
+        <h3 class="feature-title">键鼠双操控</h3>
+        <p class="feature-text">支持键盘数字键/方向键/空格键快速操作，也支持鼠标点击选择。自动存档+手动存档，随时退出，随时继续，不让进度丢失。</p>
+      </div>
+      <div class="feature-card fade-in delay-6">
+        <div class="feature-icon">📱</div>
+        <h3 class="feature-title">多平台适配</h3>
+        <p class="feature-text">PC端（Windows/Mac）首发，后续适配手机端。Python + Pygame 开发，轻量高效，低配电脑也能流畅运行。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS SYSTEM SHOWCASE -->
+<section class="section">
+  <div class="container">
+    <div class="section-head fade-in">
+      <div class="section-kicker">ATTRIBUTE SYSTEM</div>
+      <h2 class="section-title">三维属性系统</h2>
+      <div class="title-divider">
+        <span></span>
+        <i>◆</i>
+        <span></span>
+      </div>
+      <p class="section-desc">你的每一个选择，都在塑造你是谁</p>
+    </div>
+
+    <div class="stats-showcase">
+      <div class="stat-showcase-item fade-in delay-1">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-name">理想值</div>
+        <div class="stat-bar-bg">
+          <div class="stat-bar-fill" data-width="75%"></div>
+        </div>
+        <p class="stat-desc">对梦想的坚持，对产品的执念。越高越容易走理想主义路线，可能成功也可能撞得头破血流。</p>
+      </div>
+      <div class="stat-showcase-item fade-in delay-2">
+        <div class="stat-icon">💼</div>
+        <div class="stat-name">现实值</div>
+        <div class="stat-bar-bg">
+          <div class="stat-bar-fill" data-width="50%"></div>
+        </div>
+        <p class="stat-desc">对商业的理解，对现实的妥协。越高越容易做出"正确"的商业决策，但可能会失去一些东西。</p>
+      </div>
+      <div class="stat-showcase-item fade-in delay-3">
+        <div class="stat-icon">❤️</div>
+        <div class="stat-name">温情值</div>
+        <div class="stat-bar-bg">
+          <div class="stat-bar-fill" data-width="35%"></div>
+        </div>
+        <p class="stat-desc">对家人朋友的珍视，对身边人的温度。越高越能收获真挚的情感，在低谷时也有人愿意陪你走。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BRANCHES -->
+<section class="section section-alt" id="branches">
+  <div class="container">
+    <div class="section-head fade-in">
+      <div class="section-kicker">ENDING BRANCHES</div>
+      <h2 class="section-title">结局分支</h2>
+      <div class="title-divider">
+        <span></span>
+        <i>◆</i>
+        <span></span>
+      </div>
+      <p class="section-desc">在至暗时刻，你的选择决定他的命运</p>
+    </div>
+
+    <div class="branches-wrap fade-in">
+      <div class="branch-center">
+        <div class="branch-center-label">至暗时刻 · 五条路</div>
+      </div>
+
+      <div class="branch-paths">
+        <div class="path-item">
+          <div class="path-name">A. 继续做手机</div>
+          <div class="path-desc">理想主义之路</div>
+        </div>
+        <div class="path-item">
+          <div class="path-name">B. 直播带货</div>
+          <div class="path-desc">现实主义之路</div>
+        </div>
+        <div class="path-item">
+          <div class="path-name">C. 加入谷米</div>
+          <div class="path-desc">合作共赢之路</div>
+        </div>
+        <div class="path-item locked">
+          <div class="path-name">D. 加入红果</div>
+          <div class="path-desc">🔒 二周目解锁</div>
+        </div>
+        <div class="path-item locked">
+          <div class="path-name">E. 卖掉公司</div>
+          <div class="path-desc">🔒 仅一周目</div>
+        </div>
+      </div>
+
+      <div style="text-align:center;color:var(--text-3);font-size:13px;margin:0 0 24px;letter-spacing:2px;">— 13 种结局 —</div>
+
+      <div class="endings-grid">
+        <div class="ending-card best">
+          <div class="ending-stars">★★★★★</div>
+          <div class="ending-name">理想不死</div>
+          <div class="ending-type">最佳结局</div>
+        </div>
+        <div class="ending-card good">
+          <div class="ending-stars">★★★★</div>
+          <div class="ending-name">真还传</div>
+          <div class="ending-type">好结局</div>
+        </div>
+        <div class="ending-card good">
+          <div class="ending-stars">★★★★</div>
+          <div class="ending-name">谷米合伙人</div>
+          <div class="ending-type">好结局</div>
+        </div>
+        <div class="ending-card good">
+          <div class="ending-stars">★★★★</div>
+          <div class="ending-name">归国赤子</div>
+          <div class="ending-type">好结局</div>
+        </div>
+        <div class="ending-card normal">
+          <div class="ending-stars">★★★</div>
+          <div class="ending-name">小而美</div>
+          <div class="ending-type">普通结局</div>
+        </div>
+        <div class="ending-card normal">
+          <div class="ending-stars">★★★</div>
+          <div class="ending-name">流量明星</div>
+          <div class="ending-type">普通结局</div>
+        </div>
+        <div class="ending-card normal">
+          <div class="ending-stars">★★★</div>
+          <div class="ending-name">平凡是真</div>
+          <div class="ending-type">普通结局</div>
+        </div>
+        <div class="ending-card bad">
+          <div class="ending-stars">★★</div>
+          <div class="ending-name">梦碎坚石</div>
+          <div class="ending-type">失败结局</div>
+        </div>
+        <div class="ending-card bad">
+          <div class="ending-stars">★★</div>
+          <div class="ending-name">网红迷途</div>
+          <div class="ending-type">失败结局</div>
+        </div>
+        <div class="ending-card bad">
+          <div class="ending-stars">★★</div>
+          <div class="ending-name">异客</div>
+          <div class="ending-type">失败结局</div>
+        </div>
+        <div class="ending-card bad">
+          <div class="ending-stars">★</div>
+          <div class="ending-name">消失的老罗</div>
+          <div class="ending-type">失败结局</div>
+        </div>
+        <div class="ending-card hidden">
+          <div class="ending-stars">★★★★★</div>
+          <div class="ending-name">细红线归来</div>
+          <div class="ending-type">隐藏结局 🔮</div>
+        </div>
+        <div class="ending-card hidden">
+          <div class="ending-stars">★★★★</div>
+          <div class="ending-name">十字路口</div>
+          <div class="ending-type">隐藏结局 🎙️</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHARACTERS -->
+<section class="section" id="chars">
+  <div class="container">
+    <div class="section-head fade-in">
+      <div class="section-kicker">CHARACTERS</div>
+      <h2 class="section-title">人物介绍</h2>
+      <div class="title-divider">
+        <span></span>
+        <i>◆</i>
+        <span></span>
+      </div>
+      <p class="section-desc">每个角色都有自己的故事，不只是推动剧情的工具人</p>
+    </div>
+
+    <div class="char-grid">
+      <div class="char-card fade-in delay-1">
+        <div class="char-avatar">👨‍💼</div>
+        <div class="char-name">罗诚</div>
+        <div class="char-role">主角 / 创业者</div>
+      </div>
+      <div class="char-card fade-in delay-2">
+        <div class="char-avatar">👩</div>
+        <div class="char-name">林晓</div>
+        <div class="char-role">妻子</div>
+      </div>
+      <div class="char-card fade-in delay-3">
+        <div class="char-avatar">👨‍🔧</div>
+        <div class="char-name">老王</div>
+        <div class="char-role">硬件总监</div>
+      </div>
+      <div class="char-card fade-in delay-4">
+        <div class="char-avatar">⚖️</div>
+        <div class="char-name">老周</div>
+        <div class="char-role">法务总监</div>
+      </div>
+      <div class="char-card fade-in delay-5">
+        <div class="char-avatar">👨‍💼</div>
+        <div class="char-name">程总</div>
+        <div class="char-role">谷米CEO</div>
+      </div>
+      <div class="char-card fade-in delay-6">
+        <div class="char-avatar">💰</div>
+        <div class="char-name">吴老板</div>
+        <div class="char-role">书店老板</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container fade-in">
+    <h2 class="cta-title">你的选择，决定他的命运</h2>
+    <p class="cta-text">
+      13种结局，87个场景，17个成就。<br>
+      这一次，换你来走这条路。
+    </p>
+    <a href="#" class="btn btn-primary">开始游戏</a>
+  </div>
+</section>
+
+<footer>
+  <p>
+    《罗诚的故事》<span class="divider-text">|</span>
+    本游戏为虚构作品，如有雷同纯属巧合<span class="divider-text">|</span>
+    Made with TRAE AI
+  </p>
+</footer>
+
+<script>
+  // ====== 粒子背景 ======
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  class Particle {
+    constructor() {
+      this.reset();
+    }
+    reset() {
+      this.x = Math.random() * canvas.width;
+      this.y = Math.random() * canvas.height;
+      this.size = Math.random() * 2 + 0.5;
+      this.speedX = (Math.random() - 0.5) * 0.3;
+      this.speedY = (Math.random() - 0.5) * 0.3;
+      this.opacity = Math.random() * 0.5 + 0.2;
+      const colors = ['#f6d365', '#e94560', '#4facfe', '#ffffff'];
+      this.color = colors[Math.floor(Math.random() * colors.length)];
+    }
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
+        this.reset();
+      }
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.globalAlpha = this.opacity;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  for (let i = 0; i < 60; i++) {
+    particles.push(new Particle());
+  }
+
+  function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.update();
+      p.draw();
+    });
+    requestAnimationFrame(animateParticles);
+  }
+  animateParticles();
+
+  // ====== 滚动动画 ======
+  const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, observerOptions);
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  // ====== 属性条动画 ======
+  const barObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const fills = entry.target.querySelectorAll('.stat-bar-fill');
+        fills.forEach(fill => {
+          const targetWidth = fill.getAttribute('data-width');
+          fill.style.width = '0%';
+          setTimeout(() => {
+            fill.style.width = targetWidth;
+          }, 200);
+        });
+      }
+    });
+  }, { threshold: 0.5 });
+
+  document.querySelectorAll('.stats-showcase').forEach(el => barObserver.observe(el));
+
+  // ====== 导航栏滚动效果 ======
+  let lastScroll = 0;
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('nav');
+    const currentScroll = window.pageYOffset;
+    if (currentScroll > 100) {
+      nav.style.background = 'rgba(10,10,20,0.9)';
+    } else {
+      nav.style.background = 'rgba(10,10,20,0.7)';
+    }
+    lastScroll = currentScroll;
+  });
+</script>
+
+</body>
+</html>

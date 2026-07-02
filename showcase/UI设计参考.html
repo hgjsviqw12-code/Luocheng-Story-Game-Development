@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《老罗的故事》游戏UI设计参考</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 30px;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            font-family: "Microsoft YaHei", sans-serif;
+            min-height: 100vh;
+        }
+        h1 {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #888;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .img-gallery {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .img-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(233, 69, 96, 0.3);
+        }
+        .img-card img {
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .img-title {
+            color: #e94560;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .design-notes {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 30px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .design-notes h2 {
+            color: #f6e05e;
+            margin-bottom: 20px;
+        }
+        .design-notes ul {
+            color: #a0a0a0;
+            line-height: 2;
+        }
+        .design-notes li {
+            margin-bottom: 8px;
+        }
+        .design-notes .highlight {
+            color: #fff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 《老罗的故事》UI设计参考</h1>
+    <p class="subtitle">基于卡通视觉小说风格设计的游戏界面</p>
+
+    <div class="img-gallery">
+        <div class="img-card">
+            <h3 class="img-title">方案1：对话界面设计</h3>
+            <img src="https://aka.doubaocdn.com/s/hLZl1wd0GE" alt="对话界面">
+        </div>
+
+        <div class="img-card">
+            <h3 class="img-title">方案2：选择界面设计</h3>
+            <img src="https://aka.doubaocdn.com/s/0oXp1wd0Ga" alt="选择界面">
+        </div>
+    </div>
+
+    <div class="design-notes">
+        <h2>📋 设计要点总结（将在代码中实现）</h2>
+        <ul>
+            <li><span class="highlight">整体布局：</span>场景背景图 + 角色立绘 + 底部对话框（经典视觉小说布局）</li>
+            <li><span class="highlight">角色立绘：</span>卡通/动漫风格，放置在屏幕中央或两侧，根据说话者切换显示</li>
+            <li><span class="highlight">对话框：</span>底部大矩形，左侧有"老罗"名字标签，文字支持打字机动画</li>
+            <li><span class="highlight">选择面板：</span>A/B/C/D/E选项按钮，悬停时高亮放大，有精美装饰边框</li>
+            <li><span class="highlight">顶部状态栏：</span>显示资金（负数标红）、口碑星级、当前章节名称</li>
+            <li><span class="highlight">底部工具栏：</span>存档、读档、设置、图鉴、退出按钮</li>
+            <li><span class="highlight">动画效果：</span>文字逐字显示、选项淡入、角色立绘轻微浮动</li>
+            <li><span class="highlight">色彩风格：</span>深蓝紫色调为主，红色点缀（强调），金色点缀（成就）</li>
+            <li><span class="highlight">隐藏选项：</span>紫色框 + 半透明，需要特定条件触发</li>
+        </ul>
+    </div>
+
+    <div class="design-notes">
+        <h2>🚀 下一步：开始编写代码</h2>
+        <ul>
+            <li>使用 <span class="highlight">Python + Pygame</span> 实现以上设计</li>
+            <li>先用程序生成占位背景和角色（后续可替换为AI生成的精美素材）</li>
+            <li>完整剧情系统（场景切换、对话、选项、存档读档）</li>
+            <li>结局图鉴系统</li>
+        </ul>
+    </div>
+</body>
+</html>

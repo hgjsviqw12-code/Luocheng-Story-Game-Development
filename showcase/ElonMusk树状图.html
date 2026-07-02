@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elon Musk 人生树状图 - 逆袭人生</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0d1b2a 50%, #1b263b 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            color: #fff;
+            padding: 30px 0;
+        }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        .header h1 span { color: #e2e8f0; }
+        .header p { color: #a0a0a0; font-size: 1.1em; }
+        .tree-container { overflow-x: auto; padding: 40px 20px; min-width: 1200px; }
+        .tree { display: flex; justify-content: center; }
+        .level { display: flex; justify-content: center; position: relative; padding: 0 20px; }
+        .level::before { content: ''; position: absolute; top: 0; left: 50%; width: 2px; height: 30px; background: #4a5568; }
+        .level:first-child::before { display: none; }
+        .node { position: relative; margin: 0 15px; text-align: center; }
+        .node-box {
+            background: linear-gradient(145deg, #2d3748, #1a202c);
+            border: 2px solid #4a5568;
+            border-radius: 12px;
+            padding: 15px 20px;
+            min-width: 180px;
+            max-width: 220px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .node-box::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #e2e8f0, #a0aec0);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .node-box:hover { transform: translateY(-5px); border-color: #e2e8f0; box-shadow: 0 10px 30px rgba(226, 232, 240, 0.2); }
+        .node-box:hover::before { opacity: 1; }
+        .node-box.start { background: linear-gradient(145deg, #4a5568, #2d3748); border-color: #e2e8f0; }
+        .node-box.good { border-color: #48bb78; }
+        .node-box.bad { border-color: #f56565; }
+        .node-box.hidden { border-color: #9f7aea; background: linear-gradient(145deg, #553c9a, #44337a); }
+        .node-box .title { color: #fff; font-size: 0.95em; font-weight: bold; margin-bottom: 5px; }
+        .node-box .desc { color: #a0a0a0; font-size: 0.8em; }
+        .node-box.start .title { font-size: 1.1em; }
+        .node-box.start .desc { color: #e2e8f0; }
+        .branch-line { position: absolute; top: -30px; left: 50%; width: 2px; height: 30px; background: #4a5568; }
+        .children { display: flex; justify-content: center; margin-top: 40px; position: relative; }
+        .children::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: calc(100% - 100px); height: 2px; background: #4a5568; }
+        .children .node::before { content: ''; position: absolute; top: -40px; left: 50%; transform: translateX(-50%); width: 2px; height: 40px; background: #4a5568; }
+        .legend { display: flex; justify-content: center; gap: 30px; margin-top: 40px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 8px; color: #a0a0a0; font-size: 0.9em; }
+        .legend-color { width: 20px; height: 20px; border-radius: 4px; border: 2px solid; }
+        .legend-color.start { border-color: #e2e8f0; background: #4a5568; }
+        .legend-color.normal { border-color: #4a5568; background: #2d3748; }
+        .legend-color.good { border-color: #48bb78; background: #48bb78; }
+        .legend-color.bad { border-color: #f56565; background: #f56565; }
+        .legend-color.hidden { border-color: #9f7aea; background: #9f7aea; }
+
+        .endings-section { margin-top: 60px; padding: 40px; background: rgba(255,255,255,0.05); border-radius: 20px; }
+        .endings-section h2 { color: #fff; text-align: center; margin-bottom: 30px; font-size: 1.8em; }
+        .endings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1400px; margin: 0 auto; }
+        .ending-card { background: linear-gradient(145deg, #2d3748, #1a202c); border-radius: 12px; padding: 20px; border: 1px solid #4a5568; transition: transform 0.3s; }
+        .ending-card:hover { transform: translateY(-3px); }
+        .ending-card h3 { color: #fff; margin-bottom: 10px; font-size: 1.1em; }
+        .ending-card .code { color: #e2e8f0; font-size: 0.85em; margin-bottom: 8px; }
+        .ending-card .type { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.75em; margin-bottom: 10px; }
+        .ending-card .type.best { background: linear-gradient(90deg, #f6e05e, #ecc94b); color: #1a202c; }
+        .ending-card .type.good { background: #48bb78; color: #fff; }
+        .ending-card .type.normal { background: #718096; color: #fff; }
+        .ending-card .type.bad { background: #f56565; color: #fff; }
+        .ending-card .type.hidden { background: #9f7aea; color: #fff; }
+        .ending-card p { color: #a0a0a0; font-size: 0.9em; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>逆袭<span>人生</span> - Elon Musk 剧情树状图</h1>
+        <p>从PayPal亿万富翁到濒临破产，你的选择将改变人类历史</p>
+    </div>
+
+    <div class="tree-container">
+        <div class="tree">
+            <!-- 起点 -->
+            <div class="level">
+                <div class="node">
+                    <div class="node-box start">
+                        <div class="title">【起点】至暗时刻</div>
+                        <div class="desc">2008年 · SpaceX失败 · 特斯拉濒临破产</div>
+                    </div>
+                    <div class="children">
+                        <!-- A分支：继续烧钱 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box" onclick="toggleBranch('branch-a')">
+                                <div class="title">A. 孤注一掷</div>
+                                <div class="desc">继续烧钱</div>
+                            </div>
+                            <div class="children" id="branch-a">
+                                <div class="node">
+                                    <div class="node-box" onclick="toggleBranch('a1')">
+                                        <div class="title">A1. 全部投入猎鹰1号</div>
+                                        <div class="desc">最后一发</div>
+                                    </div>
+                                    <div class="children" id="a1">
+                                        <div class="node">
+                                            <div class="node-box good">
+                                                <div class="title">A1-1. 火星计划</div>
+                                                <div class="desc">梦想家 · 好结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box good" style="border-color: #f6e05e; background: linear-gradient(145deg, #b7791f, #975a16);">
+                                                <div class="title">A1-2. 稳扎稳打 ★</div>
+                                                <div class="desc">最佳结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="node">
+                                    <div class="node-box" onclick="toggleBranch('a2')">
+                                        <div class="title">A2. 双线维持</div>
+                                        <div class="desc">两边都要</div>
+                                    </div>
+                                    <div class="children" id="a2">
+                                        <div class="node">
+                                            <div class="node-box">
+                                                <div class="title">A2-1. 卖Tesla救SpaceX</div>
+                                                <div class="desc">航天梦结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box good">
+                                                <div class="title">A2-2. 卖SpaceX救Tesla</div>
+                                                <div class="desc">钢铁侠诞生 · 好结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- B分支：放弃特斯拉 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box" onclick="toggleBranch('branch-b')">
+                                <div class="title">B. All in SpaceX</div>
+                                <div class="desc">放弃特斯拉</div>
+                            </div>
+                            <div class="children" id="branch-b">
+                                <div class="node">
+                                    <div class="node-box" onclick="toggleBranch('b1')">
+                                        <div class="title">B1. 不后悔</div>
+                                        <div class="desc">孤独的先知</div>
+                                    </div>
+                                    <div class="children" id="b1">
+                                        <div class="node">
+                                            <div class="node-box">
+                                                <div class="title">B1-1. 继续火星梦</div>
+                                                <div class="desc">孤独的先知 · 中等结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box bad">
+                                                <div class="title">B1-2. 后悔想回购</div>
+                                                <div class="desc">时不再来 · 失败结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- C分支：放弃SpaceX -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box" onclick="toggleBranch('branch-c')">
+                                <div class="title">C. All in Tesla</div>
+                                <div class="desc">放弃SpaceX</div>
+                            </div>
+                            <div class="children" id="branch-c">
+                                <div class="node">
+                                    <div class="node-box" onclick="toggleBranch('c1')">
+                                        <div class="title">C1. 改变世界</div>
+                                        <div class="desc">商业帝国</div>
+                                    </div>
+                                    <div class="children" id="c1">
+                                        <div class="node">
+                                            <div class="node-box good">
+                                                <div class="title">C1-1. 值得</div>
+                                                <div class="desc">商业帝国 · 好结局</div>
+                                            </div>
+                                        </div>
+                                        <div class="node">
+                                            <div class="node-box">
+                                                <div class="title">C1-2. 遗憾</div>
+                                                <div class="desc">首富的遗憾 · 中等结局</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- D分支：退出江湖 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box hidden" onclick="toggleBranch('branch-d')">
+                                <div class="title">D. 退出江湖</div>
+                                <div class="desc">隐藏剧情</div>
+                            </div>
+                            <div class="children" id="branch-d">
+                                <div class="node">
+                                    <div class="node-box hidden" style="border-color: #9f7aea;">
+                                        <div class="title">D1. 归隐田园 ★</div>
+                                        <div class="desc">平凡的幸福 · 隐藏结局</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- E分支：X帝国 -->
+                        <div class="node">
+                            <div class="branch-line"></div>
+                            <div class="node-box hidden" onclick="toggleBranch('branch-e')">
+                                <div class="title">E. X超级帝国</div>
+                                <div class="desc">隐藏剧情</div>
+                            </div>
+                            <div class="children" id="branch-e">
+                                <div class="node">
+                                    <div class="node-box hidden" style="border-color: #f6e05e; background: linear-gradient(145deg, #744210, #5a3510);">
+                                        <div class="title">E1. X宇宙 ★</div>
+                                        <div class="desc">X帝国 · 隐藏结局</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="legend-color start"></div><span>起点</span></div>
+        <div class="legend-item"><div class="legend-color normal"></div><span>普通节点</span></div>
+        <div class="legend-item"><div class="legend-color good"></div><span>好结局</span></div>
+        <div class="legend-item"><div class="legend-color bad"></div><span>失败结局</span></div>
+        <div class="legend-item"><div class="legend-color hidden"></div><span>隐藏结局</span></div>
+    </div>
+
+    <div class="endings-section">
+        <h2>结局一览表</h2>
+        <div class="endings-grid">
+            <div class="ending-card">
+                <div class="code">A1-2</div>
+                <h3>务实的梦想家</h3>
+                <span class="type best">★ 最佳结局</span>
+                <p>SpaceX和Tesla双线成功，人类登陆火星，你成为同时掌控航天和电动汽车的传奇</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">E1</div>
+                <h3>X帝国</h3>
+                <span class="type hidden">★ 隐藏结局</span>
+                <p>创建横跨航天/汽车/社交/AI的超级帝国，太空漂浮总部，人类无法离开X Corp</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">D1</div>
+                <h3>平凡的幸福</h3>
+                <span class="type hidden">★ 隐藏结局</span>
+                <p>在德克萨斯州买农场，每天种菜喂马，发推"今天我的番茄红了"</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">A2-2</div>
+                <h3>钢铁侠的诞生</h3>
+                <span class="type good">好结局</span>
+                <p>卖掉SpaceX全投特斯拉，Model S横空出世，成为现实版钢铁侠</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">C1-1</div>
+                <h3>商业帝国</h3>
+                <span class="type good">好结局</span>
+                <p>特斯拉帝国成为世界最有价值汽车公司，但内心越来越空虚</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">A1-1</div>
+                <h3>梦想家</h3>
+                <span class="type good">好结局</span>
+                <p>SpaceX成功登陆火星，但个人资产归零</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">B1-1</div>
+                <h3>孤独的先知</h3>
+                <span class="type normal">中等结局</span>
+                <p>SpaceX成功但个人越来越孤独，火星计划停留在PPT</p>
+            </div>
+            <div class="ending-card">
+                <div class="code">B1-2</div>
+                <h3>时不再来</h3>
+                <span class="type bad">失败结局</span>
+                <p>想回购特斯拉但错过时机，发推"Sometimes I miss the old days"</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleBranch(id) {
+            const branch = document.getElementById(id);
+            if (branch) {
+                branch.style.display = branch.style.display === 'none' ? 'flex' : 'none';
+            }
+        }
+    </script>
+</body>
+</html>
