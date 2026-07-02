@@ -2188,6 +2188,7 @@ class Game {
       case STATE.DISCLAIMER:
         if (key === ' ' || key === 'Enter' || key === 'Escape') {
           this.state = STATE.TITLE;
+          this.playMusic('menu');
         }
         break;
 
